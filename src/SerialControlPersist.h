@@ -5,7 +5,7 @@
 void splitString(const String &input, const String &separator, String &prefix, String &suffix)
 {
     int pos = input.indexOf(separator);
-    if (pos != -1 && input.substring(pos,pos + separator.length()) == separator)
+    if (pos != -1 && input.substring(pos, pos + separator.length()) == separator)
     {
         prefix = input.substring(0, pos);
         suffix = input.substring(pos + separator.length());
@@ -25,17 +25,19 @@ private:
     std::map<String, int *> registredINTs;
     std::map<String, float *> registredFLOATs;
     String incomingMessage = "";
-    String seperator = "---";
+    String incomingBuffer = "";
+    String seperator = "-";
 
 public:
-    SerialControlPersist(/* args */);
+    SerialControlPersist();
+    SerialControlPersist(String seperator);
     ~SerialControlPersist();
+
     void registerINT(String key, int *ptr);
     void registerFLOAT(String key, float *ptr);
     bool isAvailable(String key);
     bool readSerial();
     bool update();
-   
 };
 bool SerialControlPersist::update()
 {
@@ -43,37 +45,58 @@ bool SerialControlPersist::update()
     {
         String prefix, suffix;
         splitString(incomingMessage, seperator, prefix, suffix);
-        if (prefix.length() && suffix.length()){
-            // Serial.println("Prefix:<" + prefix + "> Suffix:<" + suffix + ">");
-            auto it = registredINTs.find(prefix);
-            if (it!=registredINTs.end()){
-                int * ptr = it->second ;
-                *it->second = suffix.toInt();
+        if (prefix.length() && suffix.length())
+        {
+             Serial.println("Prefix:<" + prefix + "> Suffix:<" + suffix + ">");
+            if (registredINTs.find(prefix) != registredINTs.end())
+            {
+                int *ptr = registredINTs[prefix];
+                *ptr = suffix.toInt();
+                return true;
             }
-            return true;
+
+            if (registredFLOATs.find(prefix) != registredFLOATs.end())
+            {
+                *registredFLOATs[prefix] = suffix.toFloat();
+                return true;
+            }
+            Serial1.println("failed");
         }
 
         else
-            Serial.println("couldn't interpret message");
+        {
+            Serial1.println("couldn't interpret message");
+        }
     }
     return false;
 }
 bool SerialControlPersist::readSerial()
 {
-    incomingMessage = "";
-    while (Serial.available() > 0)
+
+    bool verified = false;
+    while (Serial1.available() > 0)
     {
-        char inByte = Serial.read();
-        incomingMessage = incomingMessage + inByte;
+        char inByte = Serial1.read();
+        if (inByte == ';')
+        {
+            verified = true;
+            break;
+        }
+        if (inByte != 13 && inByte != 10)
+            incomingBuffer = incomingBuffer + inByte;
     }
-    if (incomingMessage.length())
+
+    if (verified)
     {
-        Serial.println("Message Read: " + incomingMessage);
+        incomingMessage = incomingBuffer;
+        incomingBuffer = "";
+        Serial.println("Message Read: " + incomingMessage );
     }
-    return incomingMessage.length() > 0;
+    return verified;
 }
 
-bool SerialControlPersist::isAvailable(String key){
+bool SerialControlPersist::isAvailable(String key)
+{
     return (registredINTs.find(key) == registredINTs.end()) && (registredFLOATs.find(key) == registredFLOATs.end());
 }
 
@@ -83,11 +106,6 @@ void SerialControlPersist::registerINT(String key, int *ptr)
     {
         registredINTs[key] = ptr;
     }
-    else
-    {
-        // TODO: add error handling for this case
-        //  key already used;
-    }
 }
 void SerialControlPersist::registerFLOAT(String key, float *ptr)
 {
@@ -95,14 +113,14 @@ void SerialControlPersist::registerFLOAT(String key, float *ptr)
     {
         registredFLOATs[key] = ptr;
     }
-    else
-    {
-        // TODO: add error handling for this case
-        //  key already used;
-    }
 }
+
 SerialControlPersist::SerialControlPersist(/* args */)
 {
+}
+SerialControlPersist::SerialControlPersist(String seperator)
+{
+    this->seperator = seperator;
 }
 
 SerialControlPersist::~SerialControlPersist()
