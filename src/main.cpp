@@ -4,15 +4,20 @@
 #define TXD2 17
 SerialControlPersist SerialController;
 int yahoo = 12;
+float kp = 0.0;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   Serial1.begin(9600, SERIAL_8N1, RXD2, TXD2);
+  SerialController.setSerial(Serial1);
+
   Serial1.println("hello there");
   Serial.println("BEGIN");
   
 
   SerialController.registerINT("yahoo",&yahoo);
+  SerialController.registerFLOAT("kp",&kp);
+
   delay(1000);
 }
 
@@ -22,6 +27,9 @@ void loop() {
 
     Serial1.println("---> yahoo="+String(yahoo));
     Serial.println("---> yahoo="+String(yahoo));
+
+    Serial1.println("---> kp="+String(kp));
+    Serial.println("---> kp="+String(kp));
   };
   // if (Serial.available()){
   //   Serial1.write(Serial.read());

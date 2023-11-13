@@ -27,18 +27,23 @@ private:
     String incomingMessage = "";
     String incomingBuffer = "";
     String seperator = "-";
+    HardwareSerial& BluetoothSerial = Serial1;
+    bool serial_initialized = false;
 
 public:
     SerialControlPersist();
     SerialControlPersist(String seperator);
     ~SerialControlPersist();
-
+    void setSerial(HardwareSerial& s);
     void registerINT(String key, int *ptr);
     void registerFLOAT(String key, float *ptr);
     bool isAvailable(String key);
     bool readSerial();
     bool update();
 };
+void SerialControlPersist::setSerial(HardwareSerial& s){
+    BluetoothSerial = s;
+}
 bool SerialControlPersist::update()
 {
     if (readSerial())
@@ -47,7 +52,7 @@ bool SerialControlPersist::update()
         splitString(incomingMessage, seperator, prefix, suffix);
         if (prefix.length() && suffix.length())
         {
-             Serial.println("Prefix:<" + prefix + "> Suffix:<" + suffix + ">");
+            BluetoothSerial.println("Prefix:<" + prefix + "> Suffix:<" + suffix + ">");
             if (registredINTs.find(prefix) != registredINTs.end())
             {
                 int *ptr = registredINTs[prefix];
@@ -60,12 +65,12 @@ bool SerialControlPersist::update()
                 *registredFLOATs[prefix] = suffix.toFloat();
                 return true;
             }
-            Serial1.println("failed");
+            BluetoothSerial.println("failed");
         }
 
         else
         {
-            Serial1.println("couldn't interpret message");
+            BluetoothSerial.println("couldn't interpret message");
         }
     }
     return false;
@@ -74,9 +79,9 @@ bool SerialControlPersist::readSerial()
 {
 
     bool verified = false;
-    while (Serial1.available() > 0)
+    while (BluetoothSerial.available() > 0)
     {
-        char inByte = Serial1.read();
+        char inByte = BluetoothSerial.read();
         if (inByte == ';')
         {
             verified = true;
@@ -90,7 +95,7 @@ bool SerialControlPersist::readSerial()
     {
         incomingMessage = incomingBuffer;
         incomingBuffer = "";
-        Serial.println("Message Read: " + incomingMessage );
+        BluetoothSerial.println("Message Read: " + incomingMessage );
     }
     return verified;
 }
