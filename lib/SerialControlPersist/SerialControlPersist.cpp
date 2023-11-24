@@ -1,7 +1,6 @@
-#ifndef SERIAL_CONTROL_PERSIST_LIB
-#define SERIAL_CONTROL_PERSIST_LIB
-#include <Arduino.h>
-#include <map>
+
+#include "SerialControlPersist.h"
+
 void splitString(const String &input, const String &separator, String &prefix, String &suffix)
 {
     int pos = input.indexOf(separator);
@@ -18,29 +17,6 @@ void splitString(const String &input, const String &separator, String &prefix, S
         suffix = "";
     }
 }
-class SerialControlPersist
-{
-private:
-    /* data */
-    std::map<String, int *> registredINTs;
-    std::map<String, float *> registredFLOATs;
-    String incomingMessage = "";
-    String incomingBuffer = "";
-    String seperator = "-";
-    HardwareSerial& BluetoothSerial = Serial1;
-    bool serial_initialized = false;
-
-public:
-    SerialControlPersist();
-    SerialControlPersist(String seperator);
-    ~SerialControlPersist();
-    void setSerial(HardwareSerial& s);
-    void registerINT(String key, int *ptr);
-    void registerFLOAT(String key, float *ptr);
-    bool isAvailable(String key);
-    bool readSerial();
-    bool update();
-};
 void SerialControlPersist::setSerial(HardwareSerial& s){
     BluetoothSerial = s;
 }
@@ -55,14 +31,17 @@ bool SerialControlPersist::update()
             BluetoothSerial.println("Prefix:<" + prefix + "> Suffix:<" + suffix + ">");
             if (registredINTs.find(prefix) != registredINTs.end())
             {
-                int *ptr = registredINTs[prefix];
-                *ptr = suffix.toInt();
+                // int *ptr = registredINTs[prefix];
+                // *ptr = suffix.toInt();
+                *registredINTs[prefix] = suffix.toInt();
+                lastChange = prefix;
                 return true;
             }
 
             if (registredFLOATs.find(prefix) != registredFLOATs.end())
             {
                 *registredFLOATs[prefix] = suffix.toFloat();
+                lastChange = prefix;
                 return true;
             }
             BluetoothSerial.println("failed");
@@ -73,6 +52,7 @@ bool SerialControlPersist::update()
             BluetoothSerial.println("couldn't interpret message");
         }
     }
+    lastChange = "";
     return false;
 }
 bool SerialControlPersist::readSerial()
@@ -131,5 +111,3 @@ SerialControlPersist::SerialControlPersist(String seperator)
 SerialControlPersist::~SerialControlPersist()
 {
 }
-
-#endif
