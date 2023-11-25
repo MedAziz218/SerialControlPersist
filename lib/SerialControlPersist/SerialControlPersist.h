@@ -13,12 +13,14 @@ private:
     String incomingBuffer = "";
     String seperator = "-";
     
+    
     HardwareSerial& BluetoothSerial = Serial1;
     bool serial_initialized = false;
 
 
 public:
-    String lastChange = "";
+    String lastKey = "";
+    String lastValue ="";
     SerialControlPersist();
     SerialControlPersist(String seperator);
     ~SerialControlPersist();

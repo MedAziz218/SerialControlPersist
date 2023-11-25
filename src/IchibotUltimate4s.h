@@ -16,11 +16,11 @@
 #define PWM_FWD_MOTOR_R 2
 #define PWM_BWD_MOTOR_R 3
 
-#define PIN_FWD_MOTOR_L 26
-#define PIN_BWD_MOTOR_L 25
+#define PIN_FWD_MOTOR_R 26
+#define PIN_BWD_MOTOR_R 25
 
-#define PIN_FWD_MOTOR_R 32
-#define PIN_BWD_MOTOR_R 33
+#define PIN_FWD_MOTOR_L 32
+#define PIN_BWD_MOTOR_L 33
 
 #define PIN_RX 8
 #define PIN_TX 9
@@ -223,7 +223,7 @@ public:
         setMotor(0, 0);
         readSetting();
         setting.lineColor = ramIndexData[0].lineColor;
-
+        setting.speed = 0;
         delay(1500);
     }
     SimpleTimer displaySensorTimer;
@@ -261,7 +261,7 @@ public:
                     if (dataSensor & mem.sensorBitValue[0])
                     {
                         if (dataSensor & mem.sensorBitValue[1])
-                        { // syarat untuk step 1
+                        {
                             do_action = 2;
                         }
                     }
@@ -269,14 +269,14 @@ public:
                 else if (mem.modeSensor == OR)
                 {
                     if (dataSensor & mem.sensorBitValue[0])
-                    { // syarat untuk step 1
+                    {
                         do_action = 3;
                     }
                 }
                 else if (mem.modeSensor == EQUAL)
                 {
                     if (dataSensor == mem.sensorBitValue[0])
-                    { // syarat untuk step 1
+                    {
                         do_action = 4;
                     }
                 }
@@ -324,18 +324,17 @@ public:
 
                     if ((millis() - lastmsg) > timer)
                     {
+                        // DEBUG
                         Serial.println("Finished Action at index: " + String(thisRunIndex));
-                        setMotor(0, 0);
-
                         break;
                     }
                 }
                 timer = 0;
                 setting.speed = normalSpeed;
 
-                // digitalWrite(PIN_LED, HIGH);
                 if (thisRunIndex >= setting.stopIndex)
                 {
+                    // DEBUG
                     Serial.println("Stopping at index: " + String(thisRunIndex));
 
                     setMotor(0, 0);
@@ -346,8 +345,10 @@ public:
                     break;
                 }
                 thisRunIndex++;
+                // DEBUG
                 Serial.println("incrementing index to : " + String(thisRunIndex));
             }
+            // DEBUG
             // Serial.println("following line at index: "+String(thisRunIndex));
             followLine(dataSensor);
         }
@@ -391,12 +392,13 @@ public:
 
     void displaySensor(int sens)
     {
-        char s[sensorCount];
+        String s="+000000+";
         for (int i = 0; i < sensorCount; i++)
         {
-            s[i] = sens & (0b100000 >> i) ? '1' : '0';
+            s[i+1] = sens & (0b100000 >> i) ? '1' : '0';
         }
-        Serial.println(s);
+       
+        Serial1.println(s);
     }
 
     double P = 0;
@@ -404,14 +406,16 @@ public:
     double error = 0;
     double lastError = 0;
     unsigned long lastProcess = 0;
-
+    // DEBUG
+    int DEBUG_LOG = 0;
+    int ON = 0;
     void followLine(int dataSensor)
     {
-        double deltaTime = (millis() - lastProcess) / 1000.0;
-        lastProcess = millis();
+        double deltaTime = (micros() - lastProcess) / 1000000.0;
+        lastProcess = micros();
         switch (dataSensor)
         {
-
+        //+001110+
         case 0b001100:
             error = 0;
             break;
@@ -453,9 +457,12 @@ public:
 
         double rateError = error - lastError;
         lastError = error;
-        int moveVal = (int)P + (int)D;
+
+        double mv = P + D;
+        int moveVal = (int)(P + D);
         int moveLeft = setting.speed - moveVal;
         int moveRight = setting.speed + moveVal;
+
         if (moveLeft < listPID[setting.numPID].PMin)
             moveLeft = listPID[setting.numPID].PMin;
         if (moveLeft > listPID[setting.numPID].PMax)
@@ -464,7 +471,21 @@ public:
             moveRight = listPID[setting.numPID].PMin;
         if (moveRight > listPID[setting.numPID].PMax)
             moveRight = listPID[setting.numPID].PMax;
+        // DEBUG
+        if (DEBUG_LOG)
+        {
+            displaySensor(dataSensor);
+            Serial1.println("error: "+String(error,5));
+            Serial1.println("moveVal:" + String(moveVal) + " mv:" + String(mv) + " deltaTime:" + String(deltaTime, 5));
+            Serial1.println("moveLeft:" + String(moveLeft) + " moveRight:" + String(moveRight));
+            Serial1.println("speed:" + String(setting.speed) + " lastError:" + String(lastError, 5));
+            Serial1.println("------------------------");
+            DEBUG_LOG = 0;
+        }
+        if (ON)
         setMotor(moveLeft, moveRight);
+        else 
+        setMotor(0, 0);
     }
 
     void setMotor(int LL, int RR)

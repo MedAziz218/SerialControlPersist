@@ -110,7 +110,9 @@ def backend_mainloop(interface: Interface):
                 input_data = (
                     bluetooth.readline()
                 )  # This reads the incoming data. In this particular example it will be the "Bluetooth answers" line
-                input_str = input_data.decode()
+                # input_str = input_data.decode()
+                input_str = input_data.decode('utf-8', errors='ignore')
+                
                 print(f">> {input_str.strip()}")  # These are bytes coming in so a decode is needed
                 interface.on_read(input_str)
             i += 1

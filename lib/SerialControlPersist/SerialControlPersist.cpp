@@ -27,32 +27,45 @@ bool SerialControlPersist::update()
         String prefix, suffix;
         splitString(incomingMessage, seperator, prefix, suffix);
         if (prefix.length() && suffix.length())
-        {
-            BluetoothSerial.println("Prefix:<" + prefix + "> Suffix:<" + suffix + ">");
+        {   
+            bool success=false;
+            // DEBUG
+            // BluetoothSerial.println("Prefix:<" + prefix + "> Suffix:<" + suffix + ">");
             if (registredINTs.find(prefix) != registredINTs.end())
             {
                 // int *ptr = registredINTs[prefix];
                 // *ptr = suffix.toInt();
                 *registredINTs[prefix] = suffix.toInt();
-                lastChange = prefix;
-                return true;
+                lastKey = prefix;
+                lastValue = suffix ;
+                success = true;
             }
 
             if (registredFLOATs.find(prefix) != registredFLOATs.end())
             {
                 *registredFLOATs[prefix] = suffix.toFloat();
-                lastChange = prefix;
-                return true;
+                lastKey = prefix;
+                lastValue = suffix ;
+                success = true;
             }
-            BluetoothSerial.println("failed");
+
+            // DEBUG
+            if (success){
+                BluetoothSerial.println("success -> "+lastKey+"="+lastValue);
+            }else {
+                BluetoothSerial.println("failed");
+            }
+            return success;
         }
 
         else
-        {
+        {   
+            // DEBUG
             BluetoothSerial.println("couldn't interpret message");
         }
     }
-    lastChange = "";
+    lastKey = "";
+    lastValue = "";
     return false;
 }
 bool SerialControlPersist::readSerial()
@@ -75,7 +88,8 @@ bool SerialControlPersist::readSerial()
     {
         incomingMessage = incomingBuffer;
         incomingBuffer = "";
-        BluetoothSerial.println("Message Read: " + incomingMessage );
+        // DEBUG
+        // BluetoothSerial.println("Message Read: " + incomingMessage );
     }
     return verified;
 }
@@ -100,7 +114,7 @@ void SerialControlPersist::registerFLOAT(String key, float *ptr)
     }
 }
 
-SerialControlPersist::SerialControlPersist(/* args */)
+SerialControlPersist::SerialControlPersist()
 {
 }
 SerialControlPersist::SerialControlPersist(String seperator)
