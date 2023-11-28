@@ -17,51 +17,70 @@ void splitString(const String &input, const String &separator, String &prefix, S
         suffix = "";
     }
 }
-void SerialControlPersist::setSerial(HardwareSerial& s){
+void SerialControlPersist::setSerial(Stream *s)
+{
+    Serial.println("changed serial");
     BluetoothSerial = s;
+}
+void SerialControlPersist::setSeparator(String s)
+{
+    separator = s;
 }
 bool SerialControlPersist::update()
 {
     if (readSerial())
     {
         String prefix, suffix;
-        splitString(incomingMessage, seperator, prefix, suffix);
+        splitString(incomingMessage, separator, prefix, suffix);
         if (prefix.length() && suffix.length())
-        {   
-            bool success=false;
+        {
+            bool success = false;
             // DEBUG
-            // BluetoothSerial.println("Prefix:<" + prefix + "> Suffix:<" + suffix + ">");
+            // BluetoothSerial->println("Prefix:<" + prefix + "> Suffix:<" + suffix + ">");
+
             if (registredINTs.find(prefix) != registredINTs.end())
             {
-                // int *ptr = registredINTs[prefix];
-                // *ptr = suffix.toInt();
                 *registredINTs[prefix] = suffix.toInt();
-                lastKey = prefix;
-                lastValue = suffix ;
                 success = true;
             }
 
             if (registredFLOATs.find(prefix) != registredFLOATs.end())
             {
                 *registredFLOATs[prefix] = suffix.toFloat();
-                lastKey = prefix;
-                lastValue = suffix ;
                 success = true;
             }
 
-            // DEBUG
-            if (success){
-                BluetoothSerial.println("success -> "+lastKey+"="+lastValue);
-            }else {
-                BluetoothSerial.println("failed");
+            if (registeredVOIDs_withNoArg.find(prefix) != registeredVOIDs_withNoArg.end())
+            {
+                // Execute the registered void function with no arguments
+                registeredVOIDs_withNoArg[prefix]();
+                success = true;
+            }
+
+            if (registeredVOIDs_WithStringArg.find(prefix) != registeredVOIDs_WithStringArg.end())
+            {
+                registeredVOIDs_WithStringArg[prefix](suffix);
+                success = true;
+            }
+
+            if (success)
+            {
+                lastKey = prefix;
+                lastValue = suffix;
+                // DEBUG
+                BluetoothSerial->println("success -> " + lastKey + "=" + lastValue);
+            }
+            else
+            {
+                BluetoothSerial->println("failed");
             }
             return success;
         }
 
         else
-        {   
+        {
             // DEBUG
-            BluetoothSerial.println("couldn't interpret message");
+            BluetoothSerial->println("couldn't interpret message");
         }
     }
     lastKey = "";
@@ -70,11 +89,12 @@ bool SerialControlPersist::update()
 }
 bool SerialControlPersist::readSerial()
 {
-
+    // BluetoothSerial->println("bex+:"+String(BluetoothSerial->available()));
     bool verified = false;
-    while (BluetoothSerial.available() > 0)
+    while (BluetoothSerial->available() > 0)
     {
-        char inByte = BluetoothSerial.read();
+
+        char inByte = BluetoothSerial->read();
         if (inByte == ';')
         {
             verified = true;
@@ -89,7 +109,7 @@ bool SerialControlPersist::readSerial()
         incomingMessage = incomingBuffer;
         incomingBuffer = "";
         // DEBUG
-        // BluetoothSerial.println("Message Read: " + incomingMessage );
+        // BluetoothSerial->println("Message Read: " + incomingMessage );
     }
     return verified;
 }
@@ -102,24 +122,33 @@ bool SerialControlPersist::isAvailable(String key)
 void SerialControlPersist::registerINT(String key, int *ptr)
 {
     if (isAvailable(key))
-    {
         registredINTs[key] = ptr;
-    }
 }
 void SerialControlPersist::registerFLOAT(String key, float *ptr)
 {
     if (isAvailable(key))
-    {
         registredFLOATs[key] = ptr;
-    }
+}
+void SerialControlPersist::registerVoidNoArg(String key, void (*ptr)())
+{
+    if (isAvailable(key))
+        registeredVOIDs_withNoArg[key] = ptr;
+}
+
+void SerialControlPersist::registerVoidWithStringArg(String key, void (*ptr)(String))
+{
+    if (isAvailable(key))
+        registeredVOIDs_WithStringArg[key] = ptr;
 }
 
 SerialControlPersist::SerialControlPersist()
 {
 }
-SerialControlPersist::SerialControlPersist(String seperator)
+
+SerialControlPersist::SerialControlPersist(Stream *s, String separator)
 {
-    this->seperator = seperator;
+    setSerial(s);
+    setSeparator(separator);
 }
 
 SerialControlPersist::~SerialControlPersist()

@@ -326,7 +326,8 @@ class App(customtkinter.CTk):
         if not self.backend_interface.thread:
             return self.show_message("Not Connected","error")
         self.backend_interface.close()
-        self.backend_interface.thread.join()
+
+        self.backend_interface.thread.join(1.0)
         self.backend_interface.reset()
         self.backend_interface.on_disconnected()
     def __init__(self):
@@ -443,8 +444,6 @@ class App(customtkinter.CTk):
         self.entry_var = customtkinter.StringVar(value="yahoo-55;")
         self.entry = customtkinter.CTkEntry(self, placeholder_text="CTkEntry",textvariable=self.entry_var)
         self.entry.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
-        
-
        
         self.main_button_1 = customtkinter.CTkButton(master=self,text="send" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"))
         self.main_button_1.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
@@ -454,7 +453,7 @@ class App(customtkinter.CTk):
         def on_read(x):
             self.show_message(x.strip(),tag="incoming")
 
-       
+        self.entry.bind("<Return>", lambda event: send_cmd())
         self.main_button_1.configure(command = send_cmd )
 
         self.backend_interface.on_read = on_read

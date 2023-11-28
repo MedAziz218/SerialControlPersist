@@ -105,8 +105,12 @@ def backend_mainloop(interface: Interface):
     interface.close = close
     i = 1
     while interface.running:  # send 5 groups of data to the bluetooth
+        
         try:
-            if bluetooth.in_waiting:
+            op = bluetooth.isOpen()
+            if not op :
+                raise Exception("Connection Lost")
+            if bluetooth.in_waiting  and op:
                 input_data = (
                     bluetooth.readline()
                 )  # This reads the incoming data. In this particular example it will be the "Bluetooth answers" line
@@ -116,7 +120,7 @@ def backend_mainloop(interface: Interface):
                 print(f">> {input_str.strip()}")  # These are bytes coming in so a decode is needed
                 interface.on_read(input_str)
             i += 1
-            if interface.in_waiting:
+            if interface.in_waiting and op:
                 # bluetooth.write(f"yahoo-{i};".encode())
                 msg = interface._get_message()
                 bluetooth.write(msg.encode())
@@ -125,11 +129,12 @@ def backend_mainloop(interface: Interface):
             print(f'BACKEND_ERROR:')
             print(e)
             interface.running = False
-            interface.on_error(e)
+            interface.on_error(str(e))
             break
 
         time.sleep(0.001)  # A pause between bursts
     # bluetooth.write(b"LED OFF") #Turn Off the LED, but no answer back from Bluetooth will be printed by python
+    
 
     bluetooth.close()  # Otherwise the connection will remain open until a timeout which ties up the /dev/thingamabob
     interface.thread = None

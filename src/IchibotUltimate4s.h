@@ -243,12 +243,14 @@ public:
         {
             mem = ramIndexData[thisRunIndex];
             dataSensor = readSensor();
+            // DEBUG
             if (displaySensorTimer.isReady())
             {
                 displaySensor(dataSensor);
                 displaySensorTimer.setInterval(500);
                 displaySensorTimer.reset();
             }
+            
             byte do_action = 0;
             if (mem.action == ACTION_NOT_USE_SENSOR)
             {
@@ -338,10 +340,7 @@ public:
                     Serial.println("Stopping at index: " + String(thisRunIndex));
 
                     setMotor(0, 0);
-                    while (1)
-                    {
-                    }
-
+                    ON = 0;
                     break;
                 }
                 thisRunIndex++;
@@ -482,14 +481,20 @@ public:
             Serial1.println("------------------------");
             DEBUG_LOG = 0;
         }
-        if (ON)
+        
         setMotor(moveLeft, moveRight);
-        else 
-        setMotor(0, 0);
+        
     }
 
     void setMotor(int LL, int RR)
     {
+        if (!ON){
+            ledcWrite(PWM_FWD_MOTOR_R, 0);
+            ledcWrite(PWM_BWD_MOTOR_R, 0);
+            ledcWrite(PWM_FWD_MOTOR_L, 0);
+            ledcWrite(PWM_BWD_MOTOR_L, 0);
+            return;
+        }
         if (RR > 0)
         {
             ledcWrite(PWM_FWD_MOTOR_R, RR);
