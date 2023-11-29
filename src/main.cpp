@@ -26,7 +26,6 @@ void setup()
   Serial.begin(115200);
 
   SerialController.setSerial(&Serial1);
-  Serial.println("hello there");
 
   SerialController.registerFLOAT("kp", &kp);
   SerialController.registerFLOAT("kd", &kd);
@@ -41,17 +40,12 @@ void setup()
   /* INITIALIZE THE ICHIBOT ULTIMATE 4S LIBRARY */
   ichibot.begin();
 
-  /* SET SENSOR SENSITIVITY (Range 0 - 100) The higher, the more sensitive */
-  // ichibot.setSensorSensivity(40);
-
   /* SET PID VALUES ACCORDING TO YOUR PREFERENCE. This robot uses PD control, so ignore the I values */
   /* Parameters = PID number, Kp, Ki, Kd, Max PWM, Min PWM */
   ichibot.setPID(PID_0, 6, 0, 35, 255, -120);
   ichibot.setPID(PID_1, 8, 0, 40, 255, -120);
   ichibot.setPID(PID_2, 9, 0, 45, 255, -120);
-  setting.speed = 80;
-  setting.numPID = PID_3;
-  ichibot.setPID(PID_3, 10, 0, 15, 130, -120);
+  ichibot.setPID(PID_3, 10, 0, 15, 130, -120); // <---- tuned values
   ichibot.setPID(PID_4, 12, 0, 20, 255, -200);
   ichibot.setPID(PID_5, 15, 0, 25, 255, -250);
 
@@ -65,24 +59,62 @@ void setup()
   ichibot.setCheckPoint(CP_4, 4);
   ichibot.setCheckPoint(CP_5, 5);
 
-  /* SET AT WHICH INDEX THE ROBOT WILL STOP */
-  ichibot.StopAtIndex(6);
-
   /* CREATE PATH PLANNING */
-  ichibot.setIndex(0, SENSOR_ALL, MOTION, 120, 120, 1500, BLACK_LINE, 101, 250, PID_3, FAN_OFF, NORMAL);
-  ichibot.setIndex(1, SENSOR_LEFT, TURN_LEFT, 100, BLACK_LINE, 101, 200, PID_3, FAN_OFF, NORMAL);
-  ichibot.setIndex(2, SENSOR_RIGHT, TURN_RIGHT, 100, BLACK_LINE, 101, 100, PID_3, FAN_OFF, NORMAL);
-  ichibot.setIndex(3, SENSOR_LEFT, TURN_LEFT, 100, BLACK_LINE, 101, 300, PID_3, FAN_OFF, NORMAL);
-  ichibot.setIndex(4, SENSOR_RIGHT, TURN_RIGHT, 50, BLACK_LINE, 101, 100, PID_3, FAN_OFF, NORMAL);
-  ichibot.setIndex(5, SENSOR_LEFT_RIGHT, STRAIGHT, 100, BLACK_LINE, 101, 100, PID_3, FAN_OFF, NORMAL);
-  ichibot.setIndex(6, SENSOR_RIGHT, TURN_LEFT, 100, BLACK_LINE, 101, 300, PID_5, FAN_OFF, NORMAL);
+  setting.speed = 80;
+  setting.numPID = PID_3;
+  int i = 0;
+  {  
+    i = 0 ;
+    ichibot.setIndexSensor(i, SENSOR_ALL);
+    ichibot.setIndexAction(i, MOTION, 120, 120, 0, 50, 226);
+    ichibot.setIndexAfterAction(i, 80, 1000, 0, 50);
+    ichibot.setIndexLineColor(i, BLACK_LINE);
+    ichibot.setIndexPID(i, PID_3);
+  }
+  {  
+    i = 1 ;
+    ichibot.setIndexSensor(i, SENSOR_LEFT);
+    ichibot.setIndexAction(i, MOTION, setting.speed, setting.speed, 0, 0, 0);
+    ichibot.setIndexAfterAction(i, 120, 1000, 0, 226);
+    ichibot.setIndexLineColor(i, BLACK_LINE);
+    ichibot.setIndexPID(i, PID_3);
+  }
+  {  
+    i = 2 ;
+    ichibot.setIndexSensor(i, SENSOR_ALL_HIT);
+    ichibot.setIndexAction(i, ACTION, 150, 0, 0, 226, 0);
+    ichibot.setIndexAfterAction(i, 120, 0, 0, 0);
+    ichibot.setIndexLineColor(i, BLACK_LINE);
+    ichibot.setIndexPID(i, PID_3);
+  }
+  {  
+    i = 3 ;
+    ichibot.setIndexSensor(i, SENSOR_ALL);
+    ichibot.setIndexAction(i, MOTION, 0, -150, 0, 0, 226);
+    ichibot.setIndexAfterAction(i, 120, 0, 0, 0);
+    ichibot.setIndexLineColor(i, BLACK_LINE);
+    ichibot.setIndexPID(i, PID_3);
+  }
+  /* SET AT WHICH INDEX THE ROBOT WILL STOP */
+  ichibot.StopAtIndex(3);
+
+  // ichibot.setIndex(0, SENSOR_ALL, MOTION, 120, 120, 1500, BLACK_LINE, 101, 250, PID_3);
+  // ichibot.setIndex(1, SENSOR_LEFT, TURN_LEFT, 100, BLACK_LINE, 101, 200, PID_3);
+  // ichibot.setIndex(2, SENSOR_RIGHT, TURN_RIGHT, 100, BLACK_LINE, 101, 100, PID_3);
+  // ichibot.setIndex(3, SENSOR_LEFT, TURN_LEFT, 100, BLACK_LINE, 101, 300, PID_3);
+  // ichibot.setIndex(4, SENSOR_RIGHT, TURN_RIGHT, 50, BLACK_LINE, 101, 100, PID_3);
+  // ichibot.setIndex(5, SENSOR_LEFT_RIGHT, STRAIGHT, 100, BLACK_LINE, 101, 100, PID_3);
+  // ichibot.setIndex(6, SENSOR_RIGHT, TURN_LEFT, 100, BLACK_LINE, 101, 300, PID_5);
+
+
+  Serial1.println("hello there");
   Serial.println("Starting");
 }
 
 void loop()
 {
 
-  ichibot.testPID();
+  ichibot.ichibotLoop();
 
   if (SerialController.update())
   {
