@@ -5,6 +5,7 @@
 #include <Wire.h>
 #include <EEPROM.h>
 #include <SimpleTimer.h>
+#include <SerialControlPersist.h>
 #define PWM_Res 8
 #define PWM_Freq 1200
 
@@ -152,6 +153,8 @@ class IchibotUltimate4s
 {
 private:
 public:
+    bool do_serial_update = false;
+    SerialControlPersist *serialControl;
     /**
      * @brief Sets the configuration data for a specific index in the line follower map.
      * @note If both D , encL and encR are specified (not zero), the action will persist until all non-zero conditions are met.
@@ -342,12 +345,34 @@ public:
         setting.speed = 0;
         delay(1500);
     }
-    SimpleTimer displaySensorTimer;
+
+    int ON = 0;
+    int DEBUG_Encoders = 0;
+    int DEBUG_ResetEnc = 0;
     void ichibotLoop()
     {
-        if (!ON)
+        if (DEBUG_ResetEnc)
+        {
+            reset_encL();
+            reset_encR();
+            DEBUG_ResetEnc = 0;
+        }
+        if (DEBUG_Encoders)
+        {
+            displaySensor(readSensor());
+            Serial1.println("encL:" + String(get_encL()) + " encR:" + String(get_encR())); // DEBUG
+            DEBUG_Encoders = 0;
+        }
+        if (DEBUG_Pid)
+        {
+            testPID();
+            DEBUG_Pid = 0;
+        }
+        if (!this->ON)
+        {
             return;
-            
+        }
+
         byte thisRunIndex = 0;
         int dataSensor;
         thisRunIndex = setting.checkPoint[setting.thisCheckPoint];
@@ -362,15 +387,6 @@ public:
         {
             mem = ramIndexData[thisRunIndex];
             dataSensor = readSensor();
-            // DEBUG
-            if (displaySensorTimer.isReady())
-            {
-                displaySensor(dataSensor);
-                displaySensorTimer.setInterval(500);
-                displaySensorTimer.reset();
-                Serial1.println("encL:" + String(get_encL()) + " encR:" + String(get_encR()));
-            }
-
             byte do_action = 0;
             if (mem.action == ACTION_NOT_USE_SENSOR)
             {
@@ -406,47 +422,55 @@ public:
 
             if (do_action)
             {
-                unsigned int encL_ticks;
-                unsigned int encR_ticks;
+                unsigned int encL_ticks = get_encL();
+                unsigned int encR_ticks = get_encR();
                 unsigned long lastmsg;
-                Serial1.println("doing action");
-                setMotor(mem.L, mem.R);
+
+                if (mem.D || mem.encL || mem.encR)
+                    setMotor(mem.L, mem.R);
+                Serial1.println("doing delay"); // DEBUG
 
                 if (mem.D)
                     delay(mem.D);
-                Serial1.println("finished delay");
+                Serial1.println("finished delay"); // DEBUG
 
                 if (mem.encL)
                 {
-                    encL_ticks = get_encL();
+
                     while (get_encL() - encL_ticks < mem.encL)
                     {
-                        delayMicroseconds(100);
+                        // delayMicroseconds(100);
+                        if (this->do_serial_update) // ----
+                            serialControl->update();
+                        if (!this->ON)
+                        {
+                            Serial1.println("No can do");
+                            setMotor(0, 0);
+                            return;
+                        } // ------------------------------
                     }
                 }
-                Serial1.println("finished encL");
+                Serial1.println("finished encL"); // DEBUG
 
                 if (mem.encR)
-                {   
-                    Serial1.println("doing encR");
+                {
 
-                    encR_ticks = get_encR();
                     while (get_encR() - encR_ticks < mem.encR)
                     {
-                        
-                        if (displaySensorTimer.isReady())
+                        // delayMicroseconds(100);
+                        if (this->do_serial_update) // ----
+                            serialControl->update();
+                        if (!this->ON)
                         {
-                            
-                            displaySensorTimer.setInterval(500);
-                            displaySensorTimer.reset();
-                            Serial1.println("encL:" + String(get_encL()) + " encR:" + String(get_encR()));
-                        }
+                            Serial1.println("No can do");
+                            setMotor(0, 0);
+                            return;
+                        } // ------------------------------
                     }
                 }
                 Serial1.println("finished encR");
 
-                // setFan(mem.fanState);
-                // setServo(mem.servo_position);
+                // -------------------------------------------
 
                 if (mem.action == ACTION_USE_SENSOR)
                 {
@@ -458,6 +482,7 @@ public:
                         dataSensor = readSensor();
                     }
                 }
+                // -------------------------------------------
 
                 timer = mem.TA;
                 timerSpeed = mem.SA;
@@ -480,6 +505,15 @@ public:
                     dataSensor = readSensor();
                     followLine(dataSensor);
 
+                    if (this->do_serial_update) // ----
+                        serialControl->update();
+                    if (!this->ON)
+                    {
+                        Serial1.println("No can do");
+                        setMotor(0, 0);
+                        return;
+                    } // ------------------------------
+
                     if (((millis() - lastmsg) >= timer) &&
                         (get_encL() - encL_ticks >= mem.encL_A) &&
                         (get_encR() - encR_ticks >= mem.encR_A))
@@ -493,31 +527,30 @@ public:
 
                 if (thisRunIndex >= setting.stopIndex)
                 {
-                    // DEBUG
-                    Serial1.println("Stopping at index: " + String(thisRunIndex));
-
+                    Serial1.println("Stopping at index: " + String(thisRunIndex)); // DEBUG
+                    Serial1.println("finished");                                   // DEBUG
                     setMotor(0, 0);
                     ON = 0;
-                    while (1)
-                    {
-                        Serial1.println("finished");
-                        delay(1000);
-                    }
-                    
                     break;
                 }
                 thisRunIndex++;
-                // DEBUG
-                Serial1.println("incrementing index to : " + String(thisRunIndex));
+                Serial1.println("incrementing index to : " + String(thisRunIndex)); // DEBUG
             }
-            // DEBUG
-            // Serial.println("following line at index: "+String(thisRunIndex));
+            if (this->do_serial_update) // ----
+                serialControl->update();
+            if (!this->ON)
+            {
+                Serial1.println("No can do");
+                setMotor(0, 0);
+                return;
+            } // ------------------------------
+
             followLine(dataSensor);
         }
     }
 
     byte posSensor[sensorCount] = {23, 22, 21, 19, 18, 5};
-    int limit_value[sensorCount]; // = {600, 600, 600, 750, 600, 800, 750, 600, 600, 600, 600, 600, 600, 600};
+    // int limit_value[sensorCount]; // = {600, 600, 600, 750, 600, 800, 750, 600, 600, 600, 600, 600, 600, 600};
     int adcValue[sensorCount];
 
     int readSensor()
@@ -552,6 +585,7 @@ public:
         return bufBitSensor;
     }
 
+    // DEBUG
     void displaySensor(int sens)
     {
         String s = "+000000+";
@@ -569,8 +603,7 @@ public:
     double lastError = 0;
     unsigned long lastProcess = 0;
     // DEBUG
-    int DEBUG_LOG = 0;
-    int ON = 0;
+    int DEBUG_Pid = 0;
     void followLine(int dataSensor)
     {
         double deltaTime = (micros() - lastProcess) / 1000000.0;
@@ -637,7 +670,7 @@ public:
         if (moveRight > listPID[setting.numPID].PMax)
             moveRight = listPID[setting.numPID].PMax;
         // DEBUG
-        if (DEBUG_LOG)
+        if (this->DEBUG_Pid)
         {
             displaySensor(dataSensor);
             Serial1.println("error: " + String(error, 5));
@@ -645,7 +678,7 @@ public:
             Serial1.println("moveLeft:" + String(moveLeft) + " moveRight:" + String(moveRight));
             Serial1.println("speed:" + String(setting.speed) + " lastError:" + String(lastError, 5));
             Serial1.println("------------------------");
-            DEBUG_LOG = 0;
+            this->DEBUG_Pid = 0;
         }
 
         setMotor(moveLeft, moveRight);
@@ -688,13 +721,6 @@ public:
     {
         int dataSensor = readSensor();
         followLine(dataSensor);
-        // DEBUG
-        if (displaySensorTimer.isReady())
-        {
-            displaySensorTimer.setInterval(500);
-            displaySensorTimer.reset();
-            Serial1.println("encL:" + String(get_encL()) + " encR:" + String(get_encR()));
-        }
     }
 };
 #endif

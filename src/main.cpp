@@ -5,21 +5,14 @@
 #define TXD2 17
 SerialControlPersist SerialController;
 IchibotUltimate4s ichibot;
-
+int pid_num = 3;
 float kp = 0;
 float kd = 0;
 int min_pid = -100;
 int max_pid = 100;
 int ON = ichibot.ON;
-void test()
-{
-  Serial.println("Changing serial");
-  SerialController.setSerial(&Serial1);
-}
-void testArg(String msg)
-{
-  Serial.println("yes: " + msg);
-}
+
+
 void setup()
 {
   Serial1.begin(9600, SERIAL_8N1, RXD2, TXD2);
@@ -27,16 +20,24 @@ void setup()
 
   SerialController.setSerial(&Serial1);
 
-  SerialController.registerFLOAT("kp", &kp);
-  SerialController.registerFLOAT("kd", &kd);
   SerialController.registerINT("speed", &setting.speed);
   SerialController.registerINT("ON", &ichibot.ON);
-  SerialController.registerINT("DEBUG", &ichibot.DEBUG_LOG);
+  
+  SerialController.registerINT("GetEnc", &ichibot.DEBUG_Encoders);
+  SerialController.registerINT("ResetEnc", &ichibot.DEBUG_ResetEnc);
+  SerialController.registerINT("GetPid", &ichibot.DEBUG_Pid);
+
+  SerialController.registerFLOAT("kp", &kp);
+  SerialController.registerFLOAT("kd", &kd);
+  SerialController.registerINT("pid_num", &pid_num);
   SerialController.registerINT("min_pid", &min_pid);
   SerialController.registerINT("max_pid", &max_pid);
-  SerialController.registerVoidNoArg("test", &test);
-  SerialController.registerVoidWithStringArg("testArg", &testArg);
 
+  // SerialController.registerVoidNoArg("test", &test);
+  // SerialController.registerVoidWithStringArg("testArg", &testArg);
+
+  ichibot.serialControl = &SerialController;
+  ichibot.do_serial_update = true;
   /* INITIALIZE THE ICHIBOT ULTIMATE 4S LIBRARY */
   ichibot.begin();
 
@@ -109,8 +110,11 @@ void setup()
 
   Serial1.println("hello there");
   Serial.println("Starting");
+  
 }
-
+void read_serial(){
+  SerialController.update();
+}
 void loop()
 {
 
@@ -122,23 +126,8 @@ void loop()
     String value = SerialController.lastValue;
     if (key == "kp" || key == "kd" || key == "min_pid" || key == "max_pid")
     {
-      // Serial1.println("--->"+key+"=" + value);
-      ichibot.setPID(PID_3, kp, 0, kd, max_pid, min_pid);
+      ichibot.setPID(pid_num, kp, 0, kd, max_pid, min_pid);
     }
-
-    else if (key == "ON")
-    {
-      ON = ON ? 0 : 1;
-      ichibot.ON = ON;
-      // Serial1.println("---> ON=" + String(ichibot.ON));
-    }
-    else if (key == "DEBUG")
-    {
-      // Serial1.println("---> DEBUG=" + String(ichibot.DEBUG_LOG));
-    }
-    else if (key == "speed")
-    {
-      // Serial1.println("---> speed=" + String(setting.speed));
-    }
+    
   };
 }
