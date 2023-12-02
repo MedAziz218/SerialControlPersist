@@ -35,7 +35,7 @@ def load_from_json(initial_dir:str|None =None):
                 data = json.load(json_file)
                 print("Data loaded from:", file_path)
                 # Do something with the loaded data, for example, print it
-                print(data)
+                # print(data)
         except Exception as e:
             print("Error:", e)
     return data
@@ -307,6 +307,7 @@ class App(customtkinter.CTk):
                         "19200", "28800", "38400", "57600", "115200", "230400", "250000",
                         "500000", "1000000", "2000000", "2500000", "3000000", "3500000",
                         "4000000"]
+    ON_State = 0
     def on_quit(self):
         self.disconnect_callback()
         self.quit()
@@ -453,6 +454,12 @@ class App(customtkinter.CTk):
         def on_read(x):
             self.show_message(x.strip(),tag="incoming")
 
+        def toggle():
+            self.ON_State = not self.ON_State
+            print(f"ON-{int(self.ON_State)};")
+            self.send_message(f"ON-{int(self.ON_State)};")
+
+        self.bind("<Control-e>", lambda event:toggle())
         self.entry.bind("<Return>", lambda event: send_cmd())
         self.main_button_1.configure(command = send_cmd )
 

@@ -85,7 +85,7 @@ def backend_mainloop(interface: Interface):
     connected = False
     try:
         bluetooth = serial.Serial(
-            port, baudrate
+            port, baudrate,timeout= 0.5
         )  # Start communications with the bluetooth unit
         bluetooth.flushInput()  # This gives the bluetooth a little kick
         connected = True
@@ -130,15 +130,16 @@ def backend_mainloop(interface: Interface):
             print(e)
             interface.running = False
             interface.on_error(str(e))
-            break
+            quit()
 
         time.sleep(0.001)  # A pause between bursts
     # bluetooth.write(b"LED OFF") #Turn Off the LED, but no answer back from Bluetooth will be printed by python
-    
-
-    bluetooth.close()  # Otherwise the connection will remain open until a timeout which ties up the /dev/thingamabob
+    bluetooth.flushInput()
+    bluetooth.flushOutput()
+    # bluetooth.close()  # Otherwise the connection will remain open until a timeout which ties up the /dev/thingamabob
     interface.thread = None
     print("Disconnected")
+    
     
 
 
