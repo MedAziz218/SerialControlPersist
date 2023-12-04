@@ -50,6 +50,19 @@ void Robot::begin()
     setPIDNum(PID_0);
     setLineColor(BLACK_LINE);
 }
+
+
+void Robot::setMotorUntilDelayOrEncoder(int LL, int RR, int DelayMillis, int targetEncL, int targetEncR ){
+    unsigned int startEncL = get_encL();
+    unsigned int startEncR = get_encR();
+    unsigned long startMillis = millis();
+    
+    while ((get_encL() - startEncL < targetEncL) || (get_encR() - startEncR < targetEncR) || (millis() - startMillis < DelayMillis))
+    {
+        // forwardWithEncoders(startEncL, startEncR, powerL, powerR, lastTimer);
+        setMotor(LL,RR);
+    };
+}   
 void Robot::forwardUntilSensor(int sensor0, int sensor1, byte modeSensor)
 {
     unsigned int startEncL = get_encL();
@@ -72,17 +85,15 @@ void Robot::forwardUntilDelayOrEncoder(int DelayMillis, int targetEncL, int targ
     unsigned long lastTimer = 0;
     int powerL = setting.speed;
     int powerR = setting.speed;
-    debugSerial->println("forwardUntilDelayOrEncoder started");
-    int i = 0;
-    while  (checkEncoderEvent(targetEncL, targetEncR, startEncL, startEncR)  || checkDelayEvent(DelayMillis, startMillis) )
+    while ((get_encL() - startEncL < targetEncL) || (get_encR() - startEncR < targetEncR) || (millis() - startMillis < DelayMillis))
     {
         forwardWithEncoders(startEncL, startEncR, powerL, powerR, lastTimer);
-        i++;
-        debugSerial->println(String(i) +"-> EncL:"+String(get_encL()- startEncL )+" EncR:"+String(get_encR()- startEncR ));
     };
-    debugSerial->println("forwardUntilDelayOrEncoder ended "+String(i));
-   
-
+    // debugSerial->println("forwardUntilDelayOrEncoder started");
+    // int i = 0;
+    // i++;
+    // debugSerial->println(String(i) + "-> EncL:" + String(get_encL() - startEncL) + " EncR:" + String(get_encR() - startEncR));
+    // debugSerial->println("forwardUntilDelayOrEncoder ended " + String(i));
 }
 
 void Robot::followLineUntilDelayOrEncoder(int DelayMillis, int targetEncL, int targetEncR)
@@ -91,7 +102,7 @@ void Robot::followLineUntilDelayOrEncoder(int DelayMillis, int targetEncL, int t
     unsigned int startEncR = get_encR();
     unsigned long startMillis = millis();
     int dataSensor = readSensor();
-    while (!checkEncoderEvent(targetEncL, targetEncR, startEncL, startEncR) && !checkDelayEvent(DelayMillis, startMillis))
+    while ((get_encL() - startEncL < targetEncL) || (get_encR() - startEncR < targetEncR) || (millis() - startMillis < DelayMillis))
     {
         dataSensor = readSensor();
         followLine(dataSensor);
@@ -147,15 +158,15 @@ bool Robot::checkForSensorEvent(int dataSensor, int sensor0, int sensor1, byte m
 
 bool Robot::checkDelayEvent(int targetMillis, unsigned long startMillis)
 {
-    if (millis()- startMillis < targetMillis)
+    if (millis() - startMillis < targetMillis)
     {
         return true; // event still going
     }
-    return false; //event done
+    return false; // event done
 }
 bool Robot::checkEncoderEvent(int encL, int encR, int startEncL, int startEncR)
 {
-    if ((get_encL() - startEncL < encL) ||( get_encR() - startEncR < encR))
+    if ((get_encL() - startEncL < encL) && (get_encR() - startEncR < encR))
     {
         return true;
     }
@@ -166,10 +177,11 @@ bool Robot::checkEncoderEvent(int encL, int encR, int startEncL, int startEncR)
 // -----------------------------------
 void Robot::forwardWithEncoders(unsigned long startEncL, unsigned long startEncR, int &powerL, int &powerR, unsigned long &lastTimer)
 {
-    const int motor_offset = 5;
+    const int motor_offset = 1;
+    const int max_offset = 10;
     unsigned long diff_l = get_encL() - startEncL;
     unsigned long diff_r = get_encR() - startEncR;
-    if (millis() - lastTimer > 20)
+    if (millis() - lastTimer > 0)
     {
         lastTimer = millis();
         if (diff_l > diff_r)
@@ -182,6 +194,8 @@ void Robot::forwardWithEncoders(unsigned long startEncL, unsigned long startEncR
             powerL = powerL + motor_offset;
             powerR = powerR - motor_offset;
         }
+        powerL = constrain(powerL, setting.speed - max_offset, setting.speed + max_offset);
+        powerR = constrain(powerR, setting.speed - max_offset, setting.speed + max_offset);
     }
     setMotor(powerL, powerR);
 }
@@ -189,13 +203,15 @@ void Robot::followLine(int dataSensor)
 {
     double deltaTime = (micros() - lastProcess) / 1000000.0;
     lastProcess = micros();
-
+    
     switch (dataSensor)
     {
     //+001110+
     // case 0b000000:
     //     error = lastOnLineError * 2;
     //     break;
+    // case 0b100100:
+    //     error = lastOnLineError;
     case 0b001100:
         error = 0;
         break;
@@ -232,10 +248,15 @@ void Robot::followLine(int dataSensor)
         error = -4;
         break;
     }
-    // if (dataSensor != 0b000000)
-    // {
-    //     lastOnLineError = error;
-    // }
+    // 0b101100; 0b100100; 0b101111
+    
+    if ((dataSensor & 0b100000) && (dataSensor & 0b001111) ){
+        error = lastOnLineError;
+    }
+    else if (dataSensor != 0b000000)
+    {
+        lastOnLineError = error;
+    }
     P = error * (double)listPID[setting.numPID].Kp;
     D = (error - lastError) * (double)listPID[setting.numPID].Kd / deltaTime;
 
@@ -273,8 +294,8 @@ void Robot::followLine(int dataSensor)
 
 void Robot::setMotor(int LL, int RR)
 {
-    LL = constrain(LL, -255, 255);
-    RR = constrain(RR, -255, 255);
+    // LL = constrain(LL, -255, 255);
+    // RR = constrain(RR, -255, 255);
     if (!ON)
     {
         ledcWrite(PWM_FWD_MOTOR_R, 0);
@@ -347,5 +368,25 @@ void Robot::setPID(byte num, byte Kp, byte Ki, byte Kd, byte PMax, int PMin)
         listPID[num].Kd = Kd;
         listPID[num].PMax = PMax;
         listPID[num].PMin = PMin;
+    }
+}
+
+void Robot::debugLoop()
+{
+    if (DEBUG_Encoders)
+    {
+        displaySensor(readSensor());
+        Serial1.println("encL:" + String(get_encL()) + " encR:" + String(get_encR())); // DEBUG
+        DEBUG_Encoders = 0;
+    }
+    if (DEBUG_Pid)
+    {   
+        testPID();
+        DEBUG_Pid = 0;
+    }
+    if (DEBUG_ResetEnc){
+        reset_encL();
+        reset_encR();
+        DEBUG_ResetEnc = 0;
     }
 }

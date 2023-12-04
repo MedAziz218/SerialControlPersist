@@ -92,32 +92,39 @@ private:
     bool checkForSensorEvent(int dataSensor, int sensor0, int sensor1, byte modeSensor);
     bool checkEncoderEvent(int encL, int encR, int startEncL, int startEncR);
     bool checkDelayEvent(int targetMillis, unsigned long startMillis);
-    Stream* debugSerial;
-public:
-    void begin();
+    Stream *debugSerial;
+    byte posSensor[sensorCount] = {23, 22, 21, 19, 18, 5};
     void followLine(int dataSensor);
     void forwardWithEncoders(unsigned long startEncL, unsigned long startEncR, int &powerL, int &powerR, unsigned long &lastTimer);
+    
+public:
 
+    void begin();
+    void debugLoop();
     int readSensor();
     void displaySensor(int sens);
     void setMotor(int LL, int RR);
     void setPID(byte num, byte Kp, byte Ki, byte Kd, byte PMax, int PMin);
     void testPID();
-   
+
     void followLineUntilDelayOrEncoder(int DelayMillis, int targetEncL, int targetEncR);
     void forwardUntilDelayOrEncoder(int DelayMillis, int targetEncL, int targetEncR);
     void followLineUntilSensor(int sensor0, int sensor1, byte modeSensor);
     void forwardUntilSensor(int sensor0, int sensor1, byte modeSensor);
-
+    void setMotorUntilDelayOrEncoder(int LL, int RR, int DelayMillis, int targetEncL, int targetEncR );
+    
     inline void setSpeed(int speed) { setting.speed = speed; }
     inline void StopAtIndex(int stopIndex) { setting.stopIndex = stopIndex; }
     inline void setLineColor(byte lineColor) { setting.lineColor = lineColor; }
     inline void setPIDNum(byte numPID) { setting.numPID = numPID; }
-    inline void setDebugSerial(Stream* debugSerial) { this->debugSerial = debugSerial; }
-    byte posSensor[sensorCount] = {23, 22, 21, 19, 18, 5};
+    inline void setDebugSerial(Stream *debugSerial) { this->debugSerial = debugSerial; }
+    inline void setState(int state) { this->ON = state; };
+
     int ON = 0;
     int DEBUG_Pid = 0;
-    
+    int DEBUG_Encoders = 0;
+    int DEBUG_ResetEnc = 0;
+
     // void turnRight();
     // void turnLeft();
     // void spinRight();
