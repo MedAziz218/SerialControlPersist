@@ -51,18 +51,18 @@ void Robot::begin()
     setLineColor(BLACK_LINE);
 }
 
-void Robot::setMotorUntilDelayOrEncoder(int LL, int RR, int DelayMillis, int targetEncL, int targetEncR)
-{
+
+void Robot::setMotorUntilDelayOrEncoder(int LL, int RR, int DelayMillis, int targetEncL, int targetEncR ){
     unsigned int startEncL = get_encL();
     unsigned int startEncR = get_encR();
     unsigned long startMillis = millis();
-
+    
     while ((get_encL() - startEncL < targetEncL) || (get_encR() - startEncR < targetEncR) || (millis() - startMillis < DelayMillis))
     {
         // forwardWithEncoders(startEncL, startEncR, powerL, powerR, lastTimer);
-        setMotor(LL, RR);
+        setMotor(LL,RR);
     };
-}
+}   
 void Robot::forwardUntilSensor(int sensor0, int sensor1, byte modeSensor)
 {
     unsigned int startEncL = get_encL();
@@ -101,7 +101,7 @@ void Robot::followLineUntilDelayOrEncoder(int DelayMillis, int targetEncL, int t
     unsigned int startEncL = get_encL();
     unsigned int startEncR = get_encR();
     unsigned long startMillis = millis();
-    int dataSensor ;
+    int dataSensor = readSensor();
     while ((get_encL() - startEncL < targetEncL) || (get_encR() - startEncR < targetEncR) || (millis() - startMillis < DelayMillis))
     {
         dataSensor = readSensor();
@@ -203,40 +203,60 @@ void Robot::followLine(int dataSensor)
 {
     double deltaTime = (micros() - lastProcess) / 1000000.0;
     lastProcess = micros();
-    // clang-format off
-    switch (dataSensor) {
-        case 0b00011000: error = 0;    break;
-
-        case 0b00110000: error = 1;    break;
-        case 0b00100000: error = 2;    break;
-        case 0b01100000: error = 3;    break;
-        case 0b01000000: error = 4;    break;
-        case 0b11000000: error = 5;    break;
-        case 0b10000000: error = 6;    break;
-
-        case 0b00001100: error = -1;   break;
-        case 0b00000100: error = -2;   break;
-        case 0b00000110: error = -3;   break;
-        case 0b00000010: error = -4;   break;
-        case 0b00000011: error = -5;   break;
-        case 0b00000001: error = -6;   break;
-    }
-    // clang-format on
-    // debugSerial->println("--> error: " + String(error));
-    // displaySensor(dataSensor);
-
-    // 0b101100; 0b100100; 0b101111
-    // if ((dataSensor & 0b100000) && 
-    //     (dataSensor & 0b001111))
-    // if ((dataSensor &0b10000000) && 
-    //     (dataSensor &0b00011111))
-    // {
+    
+    switch (dataSensor)
+    {
+    //+001110+
+    // case 0b000000:
+    //     error = lastOnLineError * 2;
+    //     break;
+    // case 0b100100:
     //     error = lastOnLineError;
-    // }
-    // else if (dataSensor != 0b00000000)
-    // {
-    //     lastOnLineError = error;
-    // }
+    case 0b001100:
+        error = 0;
+        break;
+    case 0b011110:
+        error = 0;
+        break;
+    case 0b111111:
+        error = 0;
+        break;
+
+    case 0b011000:
+        error = 1;
+        break;
+    case 0b010000:
+        error = 2;
+        break;
+    case 0b110000:
+        error = 3;
+        break;
+    case 0b100000:
+        error = 4;
+        break;
+
+    case 0b000110:
+        error = -1;
+        break;
+    case 0b000010:
+        error = -2;
+        break;
+    case 0b000011:
+        error = -3;
+        break;
+    case 0b000001:
+        error = -4;
+        break;
+    }
+    // 0b101100; 0b100100; 0b101111
+    
+    if ((dataSensor & 0b100000) && (dataSensor & 0b001111) ){
+        error = lastOnLineError;
+    }
+    else if (dataSensor != 0b000000)
+    {
+        lastOnLineError = error;
+    }
     P = error * (double)listPID[setting.numPID].Kp;
     D = (error - lastError) * (double)listPID[setting.numPID].Kd / deltaTime;
 
@@ -308,19 +328,19 @@ void Robot::setMotor(int LL, int RR)
 }
 int Robot::readSensor()
 {
-    int dataSensorBit = 0b00000000;
+    int dataSensorBit = 0b000000;
 
     for (int x = 0; x < sensorCount; x++)
     {
         if (digitalRead(posSensor[x]))
         {
-            dataSensorBit = dataSensorBit + (0b10000000 >> x);
+            dataSensorBit = dataSensorBit + (0b100000 >> x);
         };
     }
-    int bufBitSensor = 0b11111111;
+    int bufBitSensor = 0b111111;
     if (setting.lineColor == WHITE_LINE)
     {
-        bufBitSensor = 0b11111111 - dataSensorBit;
+        bufBitSensor = 0b111111 - dataSensorBit;
     }
     else
     {
@@ -331,10 +351,10 @@ int Robot::readSensor()
 
 void Robot::displaySensor(int sens)
 {
-    String s = "+00000000+";
+    String s = "+000000+";
     for (int i = 0; i < sensorCount; i++)
     {
-        s[i + 1] = sens & (0b10000000 >> i) ? '1' : '0';
+        s[i + 1] = sens & (0b100000 >> i) ? '1' : '0';
     }
     debugSerial->println(s);
 }
@@ -351,7 +371,7 @@ void Robot::setPID(byte num, byte Kp, byte Ki, byte Kd, byte PMax, int PMin)
     }
 }
 
-void Robot::debugCode()
+void Robot::debugLoop()
 {
     if (DEBUG_Encoders)
     {
@@ -360,12 +380,11 @@ void Robot::debugCode()
         DEBUG_Encoders = 0;
     }
     if (DEBUG_Pid)
-    {
+    {   
         testPID();
         DEBUG_Pid = 0;
     }
-    if (DEBUG_ResetEnc)
-    {
+    if (DEBUG_ResetEnc){
         reset_encL();
         reset_encR();
         DEBUG_ResetEnc = 0;

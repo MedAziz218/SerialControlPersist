@@ -33,19 +33,20 @@
 
 #define BLACK_LINE 0
 #define WHITE_LINE 1
-
-#define SENSOR_ALL 0b111111, 0b000000, OR
-#define SENSOR_ALL_HIT 0b111111, 0b000000, EQUAL
-#define SENSOR_EMPTY 0b000000, 0b000000, EQUAL
-#define SENSOR_LEFT 0b100000, 0b000000, OR
-#define SENSOR_RIGHT 0b000001, 0b000000, OR
-#define SENSOR_LEFT_RIGHT 0b100000, 0b000001, XOR
-#define SENSOR_LEFT_CENTER 0b100000, 0b001100, XOR
-#define SENSOR_RIGHT_CENTER 0b000001, 0b001100, XOR
-#define SENSOR_ELBOW_RIGHT 0b000010, 0b001100, XOR
-#define SENSOR_ELBOW_LEFT 0b010000, 0b001000, XOR
-
-#define sensorCount 6
+// clang-format off
+#define SENSOR_ALL          0b11111111, 0b00000000, OR
+#define SENSOR_ALL_HIT      0b11111111, 0b00000000, EQUAL
+#define SENSOR_EMPTY        0b00000000, 0b00000000, EQUAL
+#define SENSOR_LEFT         0b11000000, 0b00000000, OR
+#define SENSOR_RIGHT        0b00000011, 0b00000000, OR
+#define SENSOR_LEFT_RIGHT   0b11000000, 0b00000011, XOR
+#define SENSOR_LEFT_CENTER  0b11000000, 0b00011000, XOR
+#define SENSOR_RIGHT_CENTER 0b00000011, 0b00011000, XOR
+#define SENSOR_ELBOW_RIGHT  0b00000110, 0b00011000, XOR
+#define SENSOR_ELBOW_LEFT   0b01100000, 0b00011000, XOR
+#define SENSOR_WIDE_CENTER  0b00100100, 0b00011000, XOR
+// clang-format on
+#define sensorCount 8
 struct dataPID
 {
     byte Kp;
@@ -93,14 +94,13 @@ private:
     bool checkEncoderEvent(int encL, int encR, int startEncL, int startEncR);
     bool checkDelayEvent(int targetMillis, unsigned long startMillis);
     Stream *debugSerial;
-    byte posSensor[sensorCount] = {23, 22, 21, 19, 18, 5};
+    byte posSensor[sensorCount] = {15,23, 22, 21, 19, 18, 5,14};
     void followLine(int dataSensor);
     void forwardWithEncoders(unsigned long startEncL, unsigned long startEncR, int &powerL, int &powerR, unsigned long &lastTimer);
-    
-public:
 
+public:
     void begin();
-    void debugLoop();
+    void debugCode();
     int readSensor();
     void displaySensor(int sens);
     void setMotor(int LL, int RR);
@@ -111,8 +111,8 @@ public:
     void forwardUntilDelayOrEncoder(int DelayMillis, int targetEncL, int targetEncR);
     void followLineUntilSensor(int sensor0, int sensor1, byte modeSensor);
     void forwardUntilSensor(int sensor0, int sensor1, byte modeSensor);
-    void setMotorUntilDelayOrEncoder(int LL, int RR, int DelayMillis, int targetEncL, int targetEncR );
-    
+    void setMotorUntilDelayOrEncoder(int LL, int RR, int DelayMillis, int targetEncL, int targetEncR);
+
     inline void setSpeed(int speed) { setting.speed = speed; }
     inline void StopAtIndex(int stopIndex) { setting.stopIndex = stopIndex; }
     inline void setLineColor(byte lineColor) { setting.lineColor = lineColor; }
