@@ -228,15 +228,18 @@ void Robot::followLine(int dataSensor)
     // 0b101100; 0b100100; 0b101111
     // if ((dataSensor & 0b100000) && 
     //     (dataSensor & 0b001111))
-    // if ((dataSensor &0b10000000) && 
-    //     (dataSensor &0b00011111))
-    // {
-    //     error = lastOnLineError;
-    // }
-    // else if (dataSensor != 0b00000000)
-    // {
-    //     lastOnLineError = error;
-    // }
+    if ((dataSensor &0b10000000) && 
+        (dataSensor &0b00011111))
+    {
+        error = lastOnLineError;
+    }
+    else if (dataSensor != 0b00000000)
+    {
+        lastOnLineError = error;
+    }
+    else if (dataSensor == 0b00000000){
+        error = lastOnLineError;
+    }
     P = error * (double)listPID[setting.numPID].Kp;
     D = (error - lastError) * (double)listPID[setting.numPID].Kd / deltaTime;
 

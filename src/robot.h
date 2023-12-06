@@ -81,6 +81,9 @@ struct dataIndex
 };
 extern dataPID listPID[NUM_PID];
 extern dataSetting setting;
+extern unsigned int get_encL();
+extern unsigned int get_encR();
+
 class Robot
 {
 private:
@@ -119,6 +122,7 @@ public:
     inline void setPIDNum(byte numPID) { setting.numPID = numPID; }
     inline void setDebugSerial(Stream *debugSerial) { this->debugSerial = debugSerial; }
     inline void setState(int state) { this->ON = state; };
+ 
 
     int ON = 0;
     int DEBUG_Pid = 0;
