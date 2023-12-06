@@ -178,7 +178,7 @@ void loop()
 
         lampa.setPIDNum(PID_5);
         lampa.setSpeed(120);
-
+        lampa.setPIDNum(PID_2);
         lampa.followLineUntilDelayOrEncoder(2600, 1500, 0); // kamalna nos dora s8ayra
 
         lampa.setPIDNum(PID_0);
@@ -219,11 +219,13 @@ void loop()
       lampa.setMotorUntilDelayOrEncoder(120, -30, 0, 240, 0); // d5alna pitStop
       // lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
       lampa.followLineUntilSensor(SENSOR_EMPTY);
-      
+      lampa.forwardUntilDelayOrEncoder(0,50,50);
+      lampa.setMotorUntilDelayOrEncoder(-30,-30,820,0,0);
+      lampa.setMotorUntilDelayOrEncoder(-25,-25,1000,0,0);
       lampa.forwardUntilSensor(SENSOR_ALL);
+      lampa.setPIDNum(PID_2);
       lampa.setSpeed(80);
-      lampa.setMotorUntilDelayOrEncoder(-30,-30,100,0,0);
-      lampa.setMotorUntilDelayOrEncoder(-25,-25,900,0,0);
+      
       
       }
       else if (i==1 || i==2){
