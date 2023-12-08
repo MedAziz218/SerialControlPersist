@@ -87,6 +87,7 @@ extern unsigned int get_encR();
 class Robot
 {
 private:
+    int shiftCoeff = 0;
     double P = 0;
     double D = 0;
     double error = 0;
@@ -122,7 +123,19 @@ public:
     inline void setPIDNum(byte numPID) { setting.numPID = numPID; }
     inline void setDebugSerial(Stream *debugSerial) { this->debugSerial = debugSerial; }
     inline void setState(int state) { this->ON = state; };
- 
+    
+    /**
+     * Sets the shift coefficient for centering.
+     *
+     * @param coeff +2 ligne ywalli 3al isar , -2 3al imin
+     */
+    void shiftCenter(int coeff){
+        shiftCoeff = coeff;
+    }
+    void STOP (){
+        setState(0);
+        setMotor(0,0);
+    }
 
     int ON = 0;
     int DEBUG_Pid = 0;

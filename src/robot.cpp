@@ -228,8 +228,8 @@ void Robot::followLine(int dataSensor)
     // 0b101100; 0b100100; 0b101111
     // if ((dataSensor & 0b100000) && 
     //     (dataSensor & 0b001111))
-    if ((dataSensor &0b10000000) && 
-        (dataSensor &0b00011111))
+    if ((dataSensor & 0b10000000) && 
+        (dataSensor & 0b00011111))
     {
         error = lastOnLineError;
     }
@@ -277,8 +277,8 @@ void Robot::followLine(int dataSensor)
 
 void Robot::setMotor(int LL, int RR)
 {
-    // LL = constrain(LL, -255, 255);
-    // RR = constrain(RR, -255, 255);
+    LL = constrain(LL, -255, 255);
+    RR = constrain(RR, -255, 255);
     if (!ON)
     {
         ledcWrite(PWM_FWD_MOTOR_R, 0);
@@ -329,6 +329,12 @@ int Robot::readSensor()
     {
         bufBitSensor = dataSensorBit;
     };
+    if (shiftCoeff>0){
+        bufBitSensor = bufBitSensor >> shiftCoeff;
+    }
+    if (shiftCoeff<0){
+        bufBitSensor = bufBitSensor << -shiftCoeff;
+    }
     return bufBitSensor;
 }
 
