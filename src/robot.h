@@ -117,13 +117,14 @@ public:
     void forwardUntilSensor(int sensor0, int sensor1, byte modeSensor);
     void setMotorUntilDelayOrEncoder(int LL, int RR, int DelayMillis, int targetEncL, int targetEncR);
 
+    void searchAndReturnToLine(int errorVal);
     inline void setSpeed(int speed) { setting.speed = speed; }
     inline void StopAtIndex(int stopIndex) { setting.stopIndex = stopIndex; }
     inline void setLineColor(byte lineColor) { setting.lineColor = lineColor; }
     inline void setPIDNum(byte numPID) { setting.numPID = numPID; }
     inline void setDebugSerial(Stream *debugSerial) { this->debugSerial = debugSerial; }
     inline void setState(int state) { this->ON = state; };
-    
+    int calculateError(int dataSensor);
     /**
      * Sets the shift coefficient for centering.
      *

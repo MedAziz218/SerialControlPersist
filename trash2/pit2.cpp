@@ -120,9 +120,9 @@ void loop()
         // -----------------i=1;
       }
 
-      if (lap == 1 || lap == 3)
+      if (lap == 1 || lap == 2)
       {
-        lampa.shiftCenter(0);
+
         lampa.setPID(pid0); // lampa.setPIDNum(PID_0);
         lampa.setSpeed(120);
         lampa.followLineUntilSensor(SENSOR_RIGHT);
@@ -136,7 +136,6 @@ void loop()
         lampa.setMotorUntilDelayOrEncoder(-25, 120, 0, 0, 90); // dour el moftara9 encL:3 encR:95
         lampa.followLineUntilDelayOrEncoder(0, 226, 226);      // cooldown
         debugLog("kamalt moftara9");
-
       }
     }
 
@@ -299,10 +298,10 @@ void loop()
     // ------------------i=9;
     if (i <= 9)
     {
-      if (lap == 1)
+      if (lap == 2)
       {
         lampa.forwardUntilDelayOrEncoder(0, 50, 50);
-        lampa.setMotorUntilDelayOrEncoder(120, -30, 0, 320, 0); // d5alna pitStop
+        lampa.setMotorUntilDelayOrEncoder(120, -30, 0, 240, 0); // d5alna pitStop
         lampa.setPID(pid2);
         lampa.setSpeed(80);
         lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
@@ -326,7 +325,7 @@ void loop()
 
         lampa.followLineUntilDelayOrEncoder(0, 120, 120);
       }
-      if (lap == 2 || lap == 3)
+      if (lap == 1 || lap == 3)
       {
         lampa.setPID(pid2);
         lampa.setSpeed(80);
@@ -334,7 +333,7 @@ void loop()
         debugPause(50);
 
         lampa.setMotorUntilDelayOrEncoder(-120, 120, 0, 64, 64);
-        lampa.searchAndReturnToLine(2);
+        lampa.searchAndReturnToLine(0);
         debugPause(100);
 
         // ----------------------------------||
@@ -354,10 +353,7 @@ void loop()
         lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
         lampa.setPID(pid0);
         lampa.setSpeed(100);
-        lampa.followLineUntilDelayOrEncoder(0, max(0, 500 - encL), max(0, 500 - encR));
-        lampa.shiftCenter(0);
-        
-
+        lampa.forwardUntilDelayOrEncoder(0, max(0, 400 - encL), max(0, 400 - encR));
         // lampa.followLineUntilSensor(0b00011000,0b00000000,EQUAL);
         // debugPause(100);
         // lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);

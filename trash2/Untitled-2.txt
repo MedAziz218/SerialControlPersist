@@ -83,7 +83,7 @@ void setup()
   lampa.setState(1);
 }
 // clang-format off
-int i=1;
+int i=5;
 int lap=1;
 // clang-format on
 void loop()
@@ -99,98 +99,83 @@ void loop()
     debugTimer = millis();
     debugLog("start point");
     lampa.setPIDNum(PID_0);
-    // -- -- -- -- -- -- -- -- -- -i = 1;
+    //-----i=1-----//
     if (i <= 1)
     {
       lampa.setPID(pid0); // lampa.setPIDNum(PID_0);
       lampa.setSpeed(120);
       if (lap == 1)
       {
-        // Accelerate ------;
-
+        // -- acceleration --;
         lampa.setSpeed(50);
-        lampa.forwardUntilDelayOrEncoder(20, 0, 0);
+        lampa.forwardUntilDelayOrEncoder(0, 10, 10);
         lampa.setSpeed(75);
-        lampa.forwardUntilDelayOrEncoder(20, 0, 0);
+        lampa.forwardUntilDelayOrEncoder(0, 10, 10);
         lampa.setSpeed(100);
-        lampa.forwardUntilDelayOrEncoder(20, 0, 0);
+        lampa.forwardUntilDelayOrEncoder(0, 10, 10);
         lampa.setSpeed(120);
         lampa.forwardUntilDelayOrEncoder(0, 226, 226);
 
-        // -----------------i=1;
+        // -- followline for a bit --;
+        lampa.setPID(pid0);
+        lampa.followLineUntilDelayOrEncoder(0, 300, 300);
       }
 
-      if (lap == 1 || lap == 3)
-      {
-        lampa.shiftCenter(0);
-        lampa.setPID(pid0); // lampa.setPIDNum(PID_0);
-        lampa.setSpeed(120);
-        lampa.followLineUntilSensor(SENSOR_RIGHT);
-        lampa.setMotorUntilDelayOrEncoder(120, -25, 0, 155, 0); // awal dora right
+      lampa.followLineUntilSensor(SENSOR_RIGHT);
+      lampa.setPID(pid0); // lampa.setPIDNum(PID_0);
+      lampa.setSpeed(120);
+      lampa.followLineUntilSensor(SENSOR_RIGHT);
+      lampa.setMotorUntilDelayOrEncoder(180, -25, 0, 155, 0); // turn right
+      lampa.followLineUntilDelayOrEncoder(0, 125, 125);       // cooldown
 
-        lampa.followLineUntilDelayOrEncoder(125, 0, 0); // cooldown
-        debugLog("kamalt awal dora right");
-
-        lampa.followLineUntilSensor(SENSOR_RIGHT_CENTER); // detecti moftara9
-
-        lampa.setMotorUntilDelayOrEncoder(-25, 120, 0, 0, 90); // dour el moftara9 encL:3 encR:95
-        lampa.followLineUntilDelayOrEncoder(0, 226, 226);      // cooldown
-        debugLog("kamalt moftara9");
-
-      }
+      lampa.followLineUntilSensor(SENSOR_RIGHT_CENTER); // detecti moftara9
+      lampa.setMotorUntilDelayOrEncoder(-30, 150, 0, 0, 90);
+      lampa.followLineUntilDelayOrEncoder(0, 160, 160); // cooldown
     }
-
+    //-----i=2-----//
     if (i <= 2)
     {
-      lampa.followLineUntilSensor(SENSOR_RIGHT); // dora el m3aftaa
-      debugLog("d5alna dora lm3afta 1");
-
-      // -----------------i=2;
-
-      // lampa.followLineUntilSensor(0b10000000,0b00011000,XOR); //
-
+      lampa.followLineUntilSensor(SENSOR_RIGHT);
       lampa.setMotorUntilDelayOrEncoder(120, -25, 0, 300, 0); // turn right
       lampa.setMotorUntilDelayOrEncoder(120, 120, 0, 30, 30); // 9addam chwaya
       // lampa.setMotorUntilDelayOrEncoder(-25, -25, 20, 0, 0); // debugggg
-      lampa.setMotorUntilDelayOrEncoder(-25, 120, 0, 0, 469);     // turn left
-      lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL); // centri ro7k
-      lampa.followLineUntilDelayOrEncoder(100, 0, 0);             // cooldown
-      // lampa.followLineUntilDelayOrEncoder(1000, 0, 0);
-      debugLog("kamalna dora m3afta 1");
-    }
+      lampa.setMotorUntilDelayOrEncoder(-25, 120, 0, 0, 469); // turn left
+      lampa.followLineUntilDelayOrEncoder(100, 100, 100);     // cooldown
 
-    // -----------------i=3;
-    if (i <= 3)
-    { // lampa.followLineUntilSensor(0b10000000, 0b00011000, XOR); // detecti carro jary
-      // lampa.setPIDNum(PID_2);
-      lampa.setPID(pid2);
-      lampa.followLineUntilDelayOrEncoder(200, 226, 226);
-      lampa.followLineUntilDelayOrEncoder(0, 80, 80); // centri ro7k
-
-      debugLog("ejrii");
-
-      // lampa.setSpeed(200);
-      // lampa.setPID(pid1); // lampa.setPIDNum(PID_1);
-
-      // ejryyyyy fantar
-      // lampa.followLineUntilDelayOrEncoder(0, 250, 250); // encL:744 encR:771
-      lampa.setSpeed(180);
-      lampa.setPID(pid1);                               // lampa.setPIDNum(PID_1);
-      lampa.followLineUntilDelayOrEncoder(0, 250, 250); // encL:744 encR:771
-
-      // raja3 low speed
-      debugLog("raja3 low speed");
       lampa.setSpeed(120);
-      lampa.setPID(pid0); // lampa.setPIDNum(PID_0);
+      lampa.setPID(pid0);
+      lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL); // centri ro7k
     }
-    // -----------------i=4;
+    //-----i=3-----//
+    if (i <= 3)
+    {
+      // -- acceleration --;
+      lampa.setSpeed(120);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(140);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(160);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(180);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(200);
+      lampa.followLineUntilDelayOrEncoder(0, 500, 500);
+
+      // -- deceleration --;
+      lampa.setSpeed(200);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(180);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(160);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(140);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(120);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+    }
+    //-----i=4-----//
     if (i <= 4)
     {
-      // lampa.followLineUntilSensor(0b10000000, 0b00111000, XOR); // detecti carro w9ouf
-      // encL:252 encR:1
-      //  encL:2 encR:469
-
-      // detecti dora m3afta 2
       lampa.followLineUntilSensor(0b10000000, 0b00111000, XOR);
       debugLog("d5alna dora m3afta 2");
       lampa.forwardUntilDelayOrEncoder(0, 90, 90);
@@ -199,11 +184,13 @@ void loop()
       // debugPause(50);
       lampa.forwardUntilDelayOrEncoder(0, 70, 70);
       // debugPause(50);
-      lampa.setMotorUntilDelayOrEncoder(120, -25, 0, 550, 0);
+      lampa.setMotorUntilDelayOrEncoder(120, -30, 0, 550, 0);
       debugLog("kamalna dora m3afta 2 ");
+      lampa.searchAndReturnToLine(-4);
+      lampa.followLineUntilDelayOrEncoder(0, 115, 115);
+      debugPause(1000);
     }
-
-    // -----------------i=5;
+    //-----i=5-----//
     if (i <= 5)
     {
       lampa.setPID(pid0); // lampa.setPIDNum(PID_0);
@@ -212,42 +199,36 @@ void loop()
       lampa.followLineUntilSensor(SENSOR_RIGHT);
 
       debugLog("ta3wija 3al imin 1");
-      lampa.setMotorUntilDelayOrEncoder(120, -25, 0, 155, 0); // awal dora right
-      lampa.searchAndReturnToLine(-3);
-
-      debugLog("ejri chwaya lenna"); // encL:580 encR:580
-      lampa.setPID(0, 35, 0, 5, 180, -130);
-      lampa.setSpeed(180);
+      lampa.setMotorUntilDelayOrEncoder(120, -30, 0, 155, 0); // awal dora right
+      lampa.searchAndReturnToLine(0);
       lampa.followLineUntilDelayOrEncoder(0, 580, 580);
-      // {
-      //   lampa.setPID(pid3);
-      //   lampa.setSpeed(230);
-      //   lampa.followLineUntilDelayOrEncoder(0, 480, 480); // bdina theni dora right
-      //   lampa.setPID(pid1);
-      //   lampa.setSpeed(180);
-      //   lampa.followLineUntilDelayOrEncoder(0, 100, 100); // bdina theni dora right
-      // }
-      debugLog("ta3wija 3al imin 2");
-      lampa.setPID(pid0); // lampa.setPIDNum(PID_0);
-      lampa.setSpeed(120);
+
+      // debugLog("ejri chwaya lenna"); // encL:580 encR:580
+      // lampa.setPID(pid1);
+      // lampa.setSpeed(180);
+      // lampa.followLineUntilDelayOrEncoder(0, 520, 520);
+      // lampa.setPID(pid0);
+
+      // // -- deceleration --;
+      // lampa.setSpeed(160);
+      // lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      // lampa.setSpeed(140);
+      // lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      // lampa.setSpeed(120);
+      // lampa.followLineUntilDelayOrEncoder(0, 100, 100);
+
       lampa.shiftCenter(+1);
       lampa.followLineUntilDelayOrEncoder(0, 550, 0); // kamalna theni dora right
       lampa.shiftCenter(0);
       lampa.searchAndReturnToLine(-3);
-
-      lampa.setPID(pid1); // lampa.setPIDNum(PID_1);
-      lampa.setSpeed(180);
-      lampa.followLineUntilDelayOrEncoder(0, 400, 400); // kamalna partie mestwia
-      debugLog("kamalna partie mestwia 1");
+      lampa.followLineUntilDelayOrEncoder(0, 400, 400);
     }
-    // ------------------i=6;
+    //-----i=6-----//
     if (i <= 6)
     {
-
       lampa.setPID(pid0);
       lampa.setSpeed(120);
       lampa.followLineUntilDelayOrEncoder(0, 200, 0);
-      debugPause(50);
       lampa.setPID(pid2);
       lampa.setSpeed(80);
       // ----------------------------------||
@@ -256,115 +237,35 @@ void loop()
       encL = get_encL() - encL;
       encR = get_encR() - encR;
       ms = millis() - ms;
-      lampa.shiftCenter(+1);
+      lampa.shiftCenter(+2);
       lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-      lampa.followLineUntilDelayOrEncoder(max(0, 2600 - ms), max(0, 1120 - encL), 0);
+      lampa.followLineUntilDelayOrEncoder(max(0, 2600 - ms), max(0, 1000 - encL), 0);
       lampa.shiftCenter(0);
       lampa.searchAndReturnToLine(0);
-      // ----------------------------------||
-
-      debugLog("kamalna nos dora s8ayra");
-      debugLog("ms: " + String(millis() - ms) + " encL: " + String(get_encL() - encL) + " encR: " + String(get_encR() - encR));
     }
-
-    // ------------------i=7;
     if (i <= 7)
     {
-      lampa.setPID(pid2);
-      lampa.setSpeed(80);
-      lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-      lampa.setPID(pid3);
+      lampa.searchAndReturnToLine(0);
+      // -- acceleration --;
+      lampa.setSpeed(120);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(160);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(180);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
       lampa.setSpeed(200);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(225);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
+      lampa.setSpeed(255);
+      lampa.followLineUntilDelayOrEncoder(0, 10, 10);
       lampa.followLineUntilDelayOrEncoder(0, 500, 500); // kamalna partie mestwia
       lampa.searchAndReturnToLine(0);
-    }
-    // ------------------i=8;
-    if (i <= 8)
-    {
-      lampa.setPID(pid0);
-      lampa.setSpeed(120);
-      lampa.followLineUntilSensor(SENSOR_LEFT); // ndourou feddora (carro theni)
-      lampa.shiftCenter(+1);
-      lampa.followLineUntilDelayOrEncoder(200, 125, 125);
-      lampa.shiftCenter(0);
-      lampa.searchAndReturnToLine(-3);
 
-      lampa.setPID(pid0);
-      lampa.setSpeed(120);
-      lampa.followLineUntilSensor(SENSOR_LEFT); // kamalna partie mestwia (carro loul)
-
-      lampa.followLineUntilDelayOrEncoder(200, 700, 500);
-      lampa.followLineUntilSensor(SENSOR_RIGHT);
-    }
-    // ------------------i=9;
-    if (i <= 9)
-    {
-      if (lap == 1)
-      {
-        lampa.forwardUntilDelayOrEncoder(0, 50, 50);
-        lampa.setMotorUntilDelayOrEncoder(120, -30, 0, 320, 0); // d5alna pitStop
-        lampa.setPID(pid2);
-        lampa.setSpeed(80);
-        lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-        lampa.followLineUntilSensor(0b11111111, 0b00000000, EQUAL);
-        lampa.forwardUntilDelayOrEncoder(0, 125, 125);
-        debugPause(1800);
-        lampa.forwardUntilDelayOrEncoder(0, 125, 125);
-        lampa.setPID(pid2);
-        lampa.setSpeed(80);
-        // ----------------------------------||
-        int encL = get_encL(), encR = get_encR();
-        lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-        encL = get_encL() - encL;
-        encR = get_encR() - encR;
-        lampa.shiftCenter(-2);
-        lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-        lampa.followLineUntilDelayOrEncoder(0, max(0, 310 - encL), max(0, 310 - encR));
-        lampa.shiftCenter(0);
-        lampa.searchAndReturnToLine(0);
-        // ----------------------------------||
-
-        lampa.followLineUntilDelayOrEncoder(0, 120, 120);
-      }
-      if (lap == 2 || lap == 3)
-      {
-        lampa.setPID(pid2);
-        lampa.setSpeed(80);
-        lampa.forwardUntilDelayOrEncoder(0, 64, 64);
-        debugPause(50);
-
-        lampa.setMotorUntilDelayOrEncoder(-120, 120, 0, 64, 64);
-        lampa.searchAndReturnToLine(2);
-        debugPause(100);
-
-        // ----------------------------------||
-        int encL = get_encL(), encR = get_encR(), ms = millis();
-        lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-        encL = get_encL() - encL;
-        encR = get_encR() - encR;
-        ms = millis() - ms;
-        lampa.shiftCenter(+2);
-        lampa.followLineUntilDelayOrEncoder(max(0, 2000 - ms), 0, 0);
-        lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-
-        lampa.shiftCenter(+1);
-        // ----------------------------------||
-        encL = get_encL() - encL;
-        encR = get_encR() - encR;
-        lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-        lampa.setPID(pid0);
-        lampa.setSpeed(100);
-        lampa.followLineUntilDelayOrEncoder(0, max(0, 500 - encL), max(0, 500 - encR));
-        lampa.shiftCenter(0);
-        
-
-        // lampa.followLineUntilSensor(0b00011000,0b00000000,EQUAL);
-        // debugPause(100);
-        // lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-
-        // lampa.followLineUntilSensor(SENSOR_RIGHT);
-        // lampa.followLineUntilSensor(0b00011000,0b00000000,EQUAL);
-      }
+      // ----------------------------------||
+      debugPause(500);
+      lampa.STOP();
+      return;
     }
     if (lap == 3)
     {

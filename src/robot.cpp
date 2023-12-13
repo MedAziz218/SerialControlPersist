@@ -50,7 +50,66 @@ void Robot::begin()
     setPIDNum(PID_0);
     setLineColor(BLACK_LINE);
 }
+void Robot::searchAndReturnToLine(int errorVal){
 
+    int dataSensor =readSensor();
+    if (dataSensor)return;
+    int kp , kd, pmax,pmin ;
+    kp = listPID[0].Kp;
+    kd = listPID[0].Kd;
+    pmax = listPID[0].PMax;
+    pmin = listPID[0].PMin;
+    this->setPID(0,25, 0, 5, 100, -100);
+    this->setSpeed(80);
+    if (errorVal){
+     lastOnLineError = errorVal;
+    }
+    while (dataSensor == 0b00000000){
+        dataSensor = readSensor();
+        this->followLine(dataSensor);
+    }
+    this->setPID(0,kp,0,kd,pmax,pmin);
+}
+int Robot::calculateError(int dataSensor){
+    // clang-format off
+    switch (dataSensor) {
+        case 0b00011000: error = 0;    break;
+
+        case 0b00110000: error = 1;    break;
+        case 0b00100000: error = 2;    break;
+        case 0b01100000: error = 3;    break;
+        case 0b01000000: error = 4;    break;
+        case 0b11000000: error = 5;    break;
+        case 0b10000000: error = 6;    break;
+
+        case 0b00001100: error = -1;   break;
+        case 0b00000100: error = -2;   break;
+        case 0b00000110: error = -3;   break;
+        case 0b00000010: error = -4;   break;
+        case 0b00000011: error = -5;   break;
+        case 0b00000001: error = -6;   break;
+    }
+    // clang-format on
+    // debugSerial->println("--> error: " + String(error));
+    // displaySensor(dataSensor);
+
+    // 0b101100; 0b100100; 0b101111
+    // if ((dataSensor & 0b100000) && 
+    //     (dataSensor & 0b001111))
+    // if ((dataSensor & 0b10000000) && 
+    //     (dataSensor & 0b00011111))
+    // {
+    //     error = lastOnLineError;
+    // }
+    if (dataSensor != 0b00000000)
+    {
+        lastOnLineError = error;
+    }
+    else if (dataSensor == 0b00000000){
+        error = lastOnLineError;
+    }
+    return error;
+}
 void Robot::setMotorUntilDelayOrEncoder(int LL, int RR, int DelayMillis, int targetEncL, int targetEncR)
 {
     unsigned int startEncL = get_encL();
@@ -58,7 +117,8 @@ void Robot::setMotorUntilDelayOrEncoder(int LL, int RR, int DelayMillis, int tar
     unsigned long startMillis = millis();
 
     while ((get_encL() - startEncL < targetEncL) || (get_encR() - startEncR < targetEncR) || (millis() - startMillis < DelayMillis))
-    {
+    {   
+        calculateError(readSensor());
         // forwardWithEncoders(startEncL, startEncR, powerL, powerR, lastTimer);
         setMotor(LL, RR);
     };
@@ -74,6 +134,7 @@ void Robot::forwardUntilSensor(int sensor0, int sensor1, byte modeSensor)
     while (!checkForSensorEvent(dataSensor, sensor0, sensor1, modeSensor))
     {
         dataSensor = readSensor();
+        calculateError(dataSensor);
         forwardWithEncoders(startEncL, startEncR, powerL, powerR, lastTimer);
     };
 }
@@ -86,7 +147,8 @@ void Robot::forwardUntilDelayOrEncoder(int DelayMillis, int targetEncL, int targ
     int powerL = setting.speed;
     int powerR = setting.speed;
     while ((get_encL() - startEncL < targetEncL) || (get_encR() - startEncR < targetEncR) || (millis() - startMillis < DelayMillis))
-    {
+    {   
+        calculateError(readSensor());
         forwardWithEncoders(startEncL, startEncR, powerL, powerR, lastTimer);
     };
     // debugSerial->println("forwardUntilDelayOrEncoder started");
@@ -233,11 +295,11 @@ void Robot::followLine(int dataSensor)
     {
         error = lastOnLineError;
     }
-    else if (dataSensor != 0b00000000)
+    if (dataSensor != 0b00000000)
     {
         lastOnLineError = error;
     }
-    else if (dataSensor == 0b00000000){
+    if (dataSensor == 0b00000000){
         error = lastOnLineError;
     }
     P = error * (double)listPID[setting.numPID].Kp;

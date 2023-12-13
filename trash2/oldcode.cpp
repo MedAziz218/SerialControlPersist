@@ -14,8 +14,8 @@
 // lampa.setPID(PID_3, 20, 0, 10, 255, -120);
 // lampa.setPID(PID_4, 20, 0, 12, 255, -200);
 // lampa.setPID(PID_5, 35, 0, 5, 140, -140);
-#define pid0 PID_0, 35, 0, 5, 140, -120
-#define pid1 PID_0, 25, 0, 5, 200, -100
+#define pid0 PID_0, 30, 0, 5, 140, -120
+#define pid1 PID_0, 20, 0, 5, 200, -100
 #define pid2 PID_0, 25, 0, 5, 100, -100
 #define pid3 PID_0, 20, 0, 10, 255, -120
 #define pid4 PID_0, 20, 0, 12, 255, -200
@@ -33,7 +33,7 @@ void waitForResetButton();
 void tunePIDCode();
 void debugPause(int dt)
 {
-  lampa.setMotorUntilDelayOrEncoder(-30, -30, dt, 0, 0);
+  lampa.setMotorUntilDelayOrEncoder(-25, -25, dt, 0, 0);
 }
 unsigned int debugTimer = 0;
 void debugLog(String log)
@@ -99,7 +99,8 @@ void loop()
     debugTimer = millis();
     debugLog("start point");
     lampa.setPIDNum(PID_0);
-    // -- -- -- -- -- -- -- -- -- -i = 1;
+
+    // -------------------i=1;
     if (i <= 1)
     {
       lampa.setPID(pid0); // lampa.setPIDNum(PID_0);
@@ -121,27 +122,26 @@ void loop()
       }
 
       if (lap == 1 || lap == 3)
-      {
-        lampa.shiftCenter(0);
+      { 
+        
         lampa.setPID(pid0); // lampa.setPIDNum(PID_0);
         lampa.setSpeed(120);
         lampa.followLineUntilSensor(SENSOR_RIGHT);
         lampa.setMotorUntilDelayOrEncoder(120, -25, 0, 155, 0); // awal dora right
-
-        lampa.followLineUntilDelayOrEncoder(125, 0, 0); // cooldown
+        
+        lampa.followLineUntilDelayOrEncoder(125, 0, 0);         // cooldown
         debugLog("kamalt awal dora right");
 
+
         lampa.followLineUntilSensor(SENSOR_RIGHT_CENTER); // detecti moftara9
-
+    
         lampa.setMotorUntilDelayOrEncoder(-25, 120, 0, 0, 90); // dour el moftara9 encL:3 encR:95
-        lampa.followLineUntilDelayOrEncoder(0, 226, 226);      // cooldown
+        lampa.followLineUntilDelayOrEncoder(0, 226, 226);        // cooldown
         debugLog("kamalt moftara9");
-
       }
     }
 
-    if (i <= 2)
-    {
+    if (i<=2){
       lampa.followLineUntilSensor(SENSOR_RIGHT); // dora el m3aftaa
       debugLog("d5alna dora lm3afta 1");
 
@@ -164,19 +164,19 @@ void loop()
     { // lampa.followLineUntilSensor(0b10000000, 0b00011000, XOR); // detecti carro jary
       // lampa.setPIDNum(PID_2);
       lampa.setPID(pid2);
-      lampa.followLineUntilDelayOrEncoder(200, 226, 226);
+      lampa.followLineUntilDelayOrEncoder(200, 0, 0);
       lampa.followLineUntilDelayOrEncoder(0, 80, 80); // centri ro7k
 
       debugLog("ejrii");
 
-      // lampa.setSpeed(200);
-      // lampa.setPID(pid1); // lampa.setPIDNum(PID_1);
+      lampa.setSpeed(200);
+      lampa.setPID(pid1); // lampa.setPIDNum(PID_1);
 
       // ejryyyyy fantar
-      // lampa.followLineUntilDelayOrEncoder(0, 250, 250); // encL:744 encR:771
+      lampa.followLineUntilDelayOrEncoder(0, 250, 250); // encL:744 encR:771
       lampa.setSpeed(180);
       lampa.setPID(pid1);                               // lampa.setPIDNum(PID_1);
-      lampa.followLineUntilDelayOrEncoder(0, 250, 250); // encL:744 encR:771
+      lampa.followLineUntilDelayOrEncoder(0, 150, 150); // encL:744 encR:771
 
       // raja3 low speed
       debugLog("raja3 low speed");
@@ -213,10 +213,9 @@ void loop()
 
       debugLog("ta3wija 3al imin 1");
       lampa.setMotorUntilDelayOrEncoder(120, -25, 0, 155, 0); // awal dora right
-      lampa.searchAndReturnToLine(-3);
 
       debugLog("ejri chwaya lenna"); // encL:580 encR:580
-      lampa.setPID(0, 35, 0, 5, 180, -130);
+      lampa.setPID(pid1);
       lampa.setSpeed(180);
       lampa.followLineUntilDelayOrEncoder(0, 580, 580);
       // {
@@ -230,10 +229,7 @@ void loop()
       debugLog("ta3wija 3al imin 2");
       lampa.setPID(pid0); // lampa.setPIDNum(PID_0);
       lampa.setSpeed(120);
-      lampa.shiftCenter(+1);
       lampa.followLineUntilDelayOrEncoder(0, 550, 0); // kamalna theni dora right
-      lampa.shiftCenter(0);
-      lampa.searchAndReturnToLine(-3);
 
       lampa.setPID(pid1); // lampa.setPIDNum(PID_1);
       lampa.setSpeed(180);
@@ -243,7 +239,7 @@ void loop()
     // ------------------i=6;
     if (i <= 6)
     {
-
+      
       lampa.setPID(pid0);
       lampa.setSpeed(120);
       lampa.followLineUntilDelayOrEncoder(0, 200, 0);
@@ -256,11 +252,10 @@ void loop()
       encL = get_encL() - encL;
       encR = get_encR() - encR;
       ms = millis() - ms;
-      lampa.shiftCenter(+1);
+      lampa.shiftCenter(+2);
       lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-      lampa.followLineUntilDelayOrEncoder(max(0, 2600 - ms), max(0, 1120 - encL), 0);
+      lampa.followLineUntilDelayOrEncoder(max(0, 2600 - ms), max(0, 1000 - encL), 0);
       lampa.shiftCenter(0);
-      lampa.searchAndReturnToLine(0);
       // ----------------------------------||
 
       debugLog("kamalna nos dora s8ayra");
@@ -276,7 +271,6 @@ void loop()
       lampa.setPID(pid3);
       lampa.setSpeed(200);
       lampa.followLineUntilDelayOrEncoder(0, 500, 500); // kamalna partie mestwia
-      lampa.searchAndReturnToLine(0);
     }
     // ------------------i=8;
     if (i <= 8)
@@ -284,10 +278,7 @@ void loop()
       lampa.setPID(pid0);
       lampa.setSpeed(120);
       lampa.followLineUntilSensor(SENSOR_LEFT); // ndourou feddora (carro theni)
-      lampa.shiftCenter(+1);
       lampa.followLineUntilDelayOrEncoder(200, 125, 125);
-      lampa.shiftCenter(0);
-      lampa.searchAndReturnToLine(-3);
 
       lampa.setPID(pid0);
       lampa.setSpeed(120);
@@ -301,12 +292,11 @@ void loop()
     {
       if (lap == 1)
       {
-        lampa.forwardUntilDelayOrEncoder(0, 50, 50);
-        lampa.setMotorUntilDelayOrEncoder(120, -30, 0, 320, 0); // d5alna pitStop
+        lampa.setMotorUntilDelayOrEncoder(120, -30, 0, 240, 0); // d5alna pitStop
         lampa.setPID(pid2);
         lampa.setSpeed(80);
         lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-        lampa.followLineUntilSensor(0b11111111, 0b00000000, EQUAL);
+        lampa.followLineUntilSensor(0b00000000, 0b00000000, EQUAL);
         lampa.forwardUntilDelayOrEncoder(0, 125, 125);
         debugPause(1800);
         lampa.forwardUntilDelayOrEncoder(0, 125, 125);
@@ -319,12 +309,11 @@ void loop()
         encR = get_encR() - encR;
         lampa.shiftCenter(-2);
         lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
-        lampa.followLineUntilDelayOrEncoder(0, max(0, 310 - encL), max(0, 310 - encR));
+        lampa.followLineUntilDelayOrEncoder(0, max(0, 300 - encL), max(0, 300 - encR));
         lampa.shiftCenter(0);
-        lampa.searchAndReturnToLine(0);
         // ----------------------------------||
 
-        lampa.followLineUntilDelayOrEncoder(0, 120, 120);
+        lampa.followLineUntilDelayOrEncoder(0, 100, 100);
       }
       if (lap == 2 || lap == 3)
       {
@@ -333,8 +322,8 @@ void loop()
         lampa.forwardUntilDelayOrEncoder(0, 64, 64);
         debugPause(50);
 
-        lampa.setMotorUntilDelayOrEncoder(-120, 120, 0, 64, 64);
-        lampa.searchAndReturnToLine(2);
+        lampa.setMotorUntilDelayOrEncoder(-120,120,0, 64, 64);
+
         debugPause(100);
 
         // ----------------------------------||
@@ -347,20 +336,17 @@ void loop()
         lampa.followLineUntilDelayOrEncoder(max(0, 2000 - ms), 0, 0);
         lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
 
-        lampa.shiftCenter(+1);
+        lampa.shiftCenter(0);
         // ----------------------------------||
         encL = get_encL() - encL;
         encR = get_encR() - encR;
         lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
         lampa.setPID(pid0);
-        lampa.setSpeed(100);
-        lampa.followLineUntilDelayOrEncoder(0, max(0, 500 - encL), max(0, 500 - encR));
-        lampa.shiftCenter(0);
-        
-
-        // lampa.followLineUntilSensor(0b00011000,0b00000000,EQUAL);
+        lampa.setSpeed(120);
+        lampa.forwardUntilDelayOrEncoder(0, max(0, 300-encL), max(0, 300-encR));
         // debugPause(100);
         // lampa.followLineUntilSensor(0b00011000, 0b00000000, EQUAL);
+        
 
         // lampa.followLineUntilSensor(SENSOR_RIGHT);
         // lampa.followLineUntilSensor(0b00011000,0b00000000,EQUAL);
